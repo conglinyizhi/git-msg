@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -150,18 +151,21 @@ func main() {
 			line = line[5:]
 		}
 
-		// 解析 JSON 数据
+		// "[DONE]" 标记结束
+		if strings.TrimSpace(line) == "[DONE]" {
+			fmt.Println("\n检测到结束")
+			break
+		}
+
 		var event Event
+		// 解析 JSON 数据
 		err := json.Unmarshal([]byte(line), &event)
 		if err != nil {
 			fmt.Println("Error parsing JSON:", err)
 			continue
 		}
-		if event.Choices[0].Delta.Content == "" {
-			break
-		}
 		// 提取并打印 delta.content
-		if len(event.Choices) > 0 {
+		if len(event.Choices) > 0 && event.Choices[0].Delta.Content != "" {
 			content := event.Choices[0].Delta.Content
 			fmt.Print(content)
 		}
