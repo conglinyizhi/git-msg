@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 
 	"github.com/joho/godotenv"
 )
@@ -29,16 +30,21 @@ func main() {
 		fmt.Fprintln(os.Stdout, []any{"NewRequest failed,%v", err}...)
 		return
 	}
+	commandObject, err := exec.Command("git", []string{"diff"}...).Output()
+	if err != nil {
+		fmt.Fprintln(os.Stdout, []any{"exec.Command failed,%v", err}...)
+		return
+	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+token)
 	talkListMap := []map[string]string{
 		{
 			"role":    "system",
-			"content": "你好",
+			"content": "帮我分析一下这个工程有什么改动，简单说说。",
 		},
 		{
 			"role":    "user",
-			"content": "你好，我是chatglm-4-flash",
+			"content": string(commandObject),
 		},
 	}
 	jsonObjectMap := map[string]interface{}{
