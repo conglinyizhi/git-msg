@@ -116,7 +116,6 @@ func main() {
 		"stream":   true,
 	}
 	jsonObject, err := json.Marshal(jsonObjectMap)
-	fmt.Println(string(jsonObject))
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"json.Marshal failed,%v", err}...)
 		return
@@ -153,7 +152,6 @@ func main() {
 
 		// "[DONE]" 标记结束
 		if strings.TrimSpace(line) == "[DONE]" {
-			fmt.Println("\n检测到结束")
 			break
 		}
 
@@ -170,11 +168,4 @@ func main() {
 			fmt.Print(content)
 		}
 	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"Read response failed,%v", err}...)
-		return
-	}
-
-	fmt.Println(string(body))
 }
