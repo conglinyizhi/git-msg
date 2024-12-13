@@ -21,8 +21,9 @@ type Event struct {
 	Created int64  `json:"created"`
 	Model   string `json:"model"`
 	Choices []struct {
-		Index int `json:"index"`
-		Delta struct {
+		Index        int    `json:"index"`
+		FinishReason string `json:"finish_reason"`
+		Delta        struct {
 			Role    string `json:"role"`
 			Content string `json:"content"`
 		} `json:"delta"`
@@ -62,7 +63,7 @@ func main() {
 	talkListMap := []map[string]string{
 		{
 			"role":    "system",
-			"content": "帮我分析一下这个工程有什么改动，简单说说。",
+			"content": "帮我分析一下这个工程有什么改动，控制文本必须用一行，最好在 30 字内，让他看起来像是一个版本控制里面的修改记录的说明消息文本，并且用中文输出",
 		},
 		{
 			"role":    "user",
@@ -118,6 +119,9 @@ func main() {
 			continue
 		}
 
+		if !(event.Choices[0].FinishReason == "") {
+			break
+		}
 		// 提取并打印 delta.content
 		if len(event.Choices) > 0 {
 			content := event.Choices[0].Delta.Content
