@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -13,6 +14,20 @@ import (
 )
 
 const LLM_API = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
+
+// 定义结构体来解析 JSON 数据
+type Event struct {
+	ID      string `json:"id"`
+	Created int64  `json:"created"`
+	Model   string `json:"model"`
+	Choices []struct {
+		Index int `json:"index"`
+		Delta struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		} `json:"delta"`
+	} `json:"choices"`
+}
 
 func getToken() (string, error) {
 	err := godotenv.Load()
@@ -58,6 +73,7 @@ func main() {
 		"model":    "glm-4-flash",
 		"messages": talkListMap,
 		"type":     "text",
+		"stream":   true,
 	}
 	jsonObject, err := json.Marshal(jsonObjectMap)
 	fmt.Println(string(jsonObject))
@@ -81,6 +97,33 @@ func main() {
 	}
 	defer resp.Body.Close()
 
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		line := scanner.Text()
+		// 忽略空行
+		if len(line) == 0 {
+			continue
+		}
+
+		// 解析 "data: " 前缀
+		if len(line) > 5 && line[:5] == "data:" {
+			line = line[5:]
+		}
+
+		// 解析 JSON 数据
+		var event Event
+		err := json.Unmarshal([]byte(line), &event)
+		if err != nil {
+			fmt.Println("Error parsing JSON:", err)
+			continue
+		}
+
+		// 提取并打印 delta.content
+		if len(event.Choices) > 0 {
+			content := event.Choices[0].Delta.Content
+			fmt.Print(content)
+		}
+	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"Read response failed,%v", err}...)
