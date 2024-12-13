@@ -14,15 +14,22 @@ import (
 
 const LLM_API = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
 
-func main() {
+func getToken() (string, error) {
 	err := godotenv.Load()
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"Load .env file failed,%v", err}...)
-		return
+		return "", err
 	}
 	token := os.Getenv("BIGMODEL_TOKEN")
 	if token == "" {
-		fmt.Fprintln(os.Stdout, []any{"BIGMODEL_TOKEN is empty"}...)
+		return "", fmt.Errorf("BIGMODEL_TOKEN is empty")
+	}
+	return token, nil
+}
+
+func main() {
+	token, err := getToken()
+	if err != nil {
+		fmt.Fprintln(os.Stdout, []any{"getToken failed,%v", err}...)
 		return
 	}
 	req, err := http.NewRequest("POST", LLM_API, nil)
