@@ -157,8 +157,7 @@ func main() {
 			fmt.Println("Error parsing JSON:", err)
 			continue
 		}
-
-		if !(event.Choices[0].FinishReason == "") {
+		if event.Choices[0].Delta.Content == "" {
 			break
 		}
 		// 提取并打印 delta.content
