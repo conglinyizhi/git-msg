@@ -42,6 +42,44 @@ func getToken() (string, error) {
 	return token, nil
 }
 
+func getDiffInDisk() (string, error) {
+	commandObject, err := exec.Command("git", []string{"diff"}...).Output()
+	if err != nil {
+		return "", err
+	}
+	return string(commandObject), nil
+}
+
+// 获取暂存区的差异
+func getDiffInStaged() (string, error) {
+	commandObject, err := exec.Command("git", []string{"diff", "--staged"}...).Output()
+	if err != nil {
+		return "", err
+	}
+	return string(commandObject), nil
+}
+
+func getDiff() (string, error) {
+	// 获取项目的差异
+	projectDiff, err := getDiffInDisk()
+	if err != nil {
+		return "", err
+	}
+	if projectDiff == "" {
+		// 如果项目没有差异，尝试获取暂存区的差异
+		stashDiff, err := getDiffInStaged()
+		if err != nil {
+			return "", err
+		}
+		if stashDiff != "" {
+			projectDiff = stashDiff
+		} else {
+			return "", fmt.Errorf("no diff infomation.")
+		}
+	}
+	return projectDiff, nil
+}
+
 func main() {
 	token, err := getToken()
 	if err != nil {
@@ -53,7 +91,7 @@ func main() {
 		fmt.Fprintln(os.Stdout, []any{"NewRequest failed,%v", err}...)
 		return
 	}
-	commandObject, err := exec.Command("git", []string{"diff"}...).Output()
+	commandObject, err := getDiffInDisk()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"exec.Command failed,%v", err}...)
 		return
