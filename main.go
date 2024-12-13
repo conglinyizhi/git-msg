@@ -31,7 +31,10 @@ func main() {
 		return
 	}
 	token := os.Getenv("BIGMODEL_TOKEN")
-
+	if token == "" {
+		fmt.Fprintln(os.Stdout, []any{"BIGMODEL_TOKEN is empty"}...)
+		return
+	}
 	req, err := http.NewRequest("POST", LLM_API, nil)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"NewRequest failed,%v", err}...)
