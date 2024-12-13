@@ -13,17 +13,6 @@ import (
 
 const LLM_API = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
 
-type LLMBody struct {
-	Model    string `json:"model"`
-	Messages []msg  `json:"messages"`
-	Type     string `json:"type"`
-}
-
-type msg struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
 func main() {
 	err := godotenv.Load()
 	if err != nil {
