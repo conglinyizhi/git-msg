@@ -101,13 +101,14 @@ func main() {
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
 		line := scanner.Text()
+		length := len(line)
 		// 忽略空行
-		if len(line) == 0 {
+		if length == 0 {
 			continue
 		}
 
 		// 解析 "data: " 前缀
-		if len(line) > 5 && line[:5] == "data:" {
+		if length > 5 && line[:5] == "data:" {
 			line = line[5:]
 		}
 
