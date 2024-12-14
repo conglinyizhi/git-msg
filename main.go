@@ -92,7 +92,7 @@ func main() {
 		fmt.Fprintln(os.Stdout, []any{"NewRequest failed,%v", err}...)
 		return
 	}
-	commandObject, err := getDiffInDisk()
+	commandObject, err := getDiff()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"exec.Command failed,%v", err}...)
 		return
