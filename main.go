@@ -16,7 +16,7 @@ import (
 
 const LLM_API = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
 
-const prompt = "请你作为一个专业的开发人员的角度，分析一下这个工程有什么改动，并且考虑为什么会有这种改动，用这些信息构成一个提交记录。要求控制文本必须用一行，最好在 30 字内，让他看起来像是一个版本控制里面的修改记录的说明消息文本，并且用中文输出"
+const prompt = "请你作为一个专业的开发人员的角度，分析一下这个工程有什么改动，并且考虑为什么会有这种改动，用这些信息构成一个提交记录。要求控制文本必须用一行，最好在 30 字内，让他看起来像是一个版本控制里面的修改记录的说明消息文本，并且用中文输出。只输出纯文本提示而不是在两侧添加各种标点符号。"
 
 // 定义结构体来解析 JSON 数据
 type Event struct {
@@ -40,7 +40,7 @@ func getToken() (string, error) {
 	}
 	token := os.Getenv("BIGMODEL_TOKEN")
 	if token == "" {
-		return "", fmt.Errorf("BIGMODEL_TOKEN is empty")
+		return "", fmt.Errorf("BIGMODEL_TOKEN 是空的，请通过 .env 填写")
 	}
 	return token, nil
 }
@@ -77,7 +77,7 @@ func getDiff() (string, error) {
 		if stashDiff != "" {
 			projectDiff = stashDiff
 		} else {
-			return "", fmt.Errorf("no diff infomation")
+			return "", fmt.Errorf("diff 没有结果可供分析，是否有新建的文件？")
 		}
 	}
 	return projectDiff, nil
@@ -86,17 +86,17 @@ func getDiff() (string, error) {
 func main() {
 	token, err := getToken()
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"getToken failed:", err}...)
+		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
 		return
 	}
 	req, err := http.NewRequest("POST", LLM_API, nil)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"NewRequest failed:", err}...)
+		fmt.Fprintln(os.Stdout, []any{"构建请求失败，原因：", err}...)
 		return
 	}
 	commandObject, err := getDiff()
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"exec.Command failed:", err}...)
+		fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 		return
 	}
 	req.Header.Add("Content-Type", "application/json")
@@ -119,7 +119,7 @@ func main() {
 	}
 	jsonObject, err := json.Marshal(jsonObjectMap)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"json.Marshal failed,%v", err}...)
+		fmt.Fprintln(os.Stdout, []any{"json.Marshal JSON解析失败，原因：", err}...)
 		return
 	}
 
@@ -133,7 +133,7 @@ func main() {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"HTTP request failed,%v", err}...)
+		fmt.Fprintln(os.Stdout, []any{"HTTP 请求失败，原因：", err}...)
 		return
 	}
 	defer resp.Body.Close()
@@ -161,7 +161,7 @@ func main() {
 		// 解析 JSON 数据
 		err := json.Unmarshal([]byte(line), &event)
 		if err != nil {
-			fmt.Println("Error parsing JSON:", err)
+			fmt.Println("解析 JSON 出错，原因:", err)
 			continue
 		}
 		// 提取并打印 delta.content
