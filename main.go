@@ -75,7 +75,7 @@ func getDiff() (string, error) {
 		if stashDiff != "" {
 			projectDiff = stashDiff
 		} else {
-			return "", fmt.Errorf("no diff infomation.")
+			return "", fmt.Errorf("no diff infomation")
 		}
 	}
 	return projectDiff, nil
