@@ -16,6 +16,8 @@ import (
 
 const LLM_API = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
 
+const prompt = "帮我分析一下这个工程有什么改动，控制文本必须用一行，最好在 30 字内，让他看起来像是一个版本控制里面的修改记录的说明消息文本，并且用中文输出"
+
 // 定义结构体来解析 JSON 数据
 type Event struct {
 	ID      string `json:"id"`
@@ -102,7 +104,7 @@ func main() {
 	talkListMap := []map[string]string{
 		{
 			"role":    "system",
-			"content": "帮我分析一下这个工程有什么改动，控制文本必须用一行，最好在 30 字内，让他看起来像是一个版本控制里面的修改记录的说明消息文本，并且用中文输出",
+			"content": prompt,
 		},
 		{
 			"role":    "user",
