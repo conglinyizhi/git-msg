@@ -84,17 +84,17 @@ func getDiff() (string, error) {
 func main() {
 	token, err := getToken()
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"getToken failed,%v", err}...)
+		fmt.Fprintln(os.Stdout, []any{"getToken failed:", err}...)
 		return
 	}
 	req, err := http.NewRequest("POST", LLM_API, nil)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"NewRequest failed,%v", err}...)
+		fmt.Fprintln(os.Stdout, []any{"NewRequest failed:", err}...)
 		return
 	}
 	commandObject, err := getDiff()
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"exec.Command failed,%v", err}...)
+		fmt.Fprintln(os.Stdout, []any{"exec.Command failed:", err}...)
 		return
 	}
 	req.Header.Add("Content-Type", "application/json")
