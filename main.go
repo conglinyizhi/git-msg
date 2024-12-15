@@ -125,9 +125,8 @@ func main() {
 
 	// 根据字符串准备一个Reader
 	bytesReader := bytes.NewReader(jsonObject)
-	bytesReaderCloser := io.NopCloser(bytesReader)
 
-	req.Body = bytesReaderCloser
+	req.Body = io.NopCloser(bytesReader)
 	req.ContentLength = int64(len(jsonObject))
 
 	client := &http.Client{}
