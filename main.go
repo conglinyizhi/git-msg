@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/joho/godotenv"
 )
 
@@ -63,25 +62,25 @@ func getDiffInStaged() (string, error) {
 	return string(commandObject), nil
 }
 
-func getDiff() (string, error) {
+func getDiff() (string, bool, error) {
+	var b = false
 	// 获取项目的差异
 	projectDiff, err := getDiffInDisk()
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 	if projectDiff == "" {
 		// 如果项目没有差异，尝试获取暂存区的差异
 		stashDiff, err := getDiffInStaged()
+		b = true
 		if err != nil {
-			return "", err
+			return "", false, err
 		}
 		if stashDiff != "" {
 			projectDiff = stashDiff
-		} else {
-			return "", fmt.Errorf("diff 没有结果可供分析，是否有新建的文件？")
 		}
 	}
-	return projectDiff, nil
+	return projectDiff, b, nil
 }
 
 func main() {
@@ -90,15 +89,10 @@ func main() {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
 		return
 	}
-	commandObject := ""
-	restartGetDiff := true
-	for restartGetDiff {
-		commandObject, err = getDiff()
-		if err != nil {
-			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
-			return
-		}
-		restartGetDiff, err = confirmation.New("获取差异失败了，可能是一些文件没有保存，要再尝试一次吗？", confirmation.Undecided).RunPrompt()
+	commandObject, isNeedAddCommand, err := getDiff()
+	if err != nil {
+		fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
+		return
 	}
 
 	req, err := http.NewRequest("POST", LLM_API, nil)
