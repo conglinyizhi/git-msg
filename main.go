@@ -89,33 +89,33 @@ func main() {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
 		return
 	}
-	req, err := http.NewRequest("POST", LLM_API, nil)
-	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"构建请求失败，原因：", err}...)
-		return
-	}
 	commandObject, err := getDiff()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 		return
 	}
+	req, err := http.NewRequest("POST", LLM_API, nil)
+	if err != nil {
+		fmt.Fprintln(os.Stdout, []any{"构建请求失败，原因：", err}...)
+		return
+	}
+
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+token)
-	talkListMap := []map[string]string{
-		{
-			"role":    "system",
-			"content": prompt,
-		},
-		{
-			"role":    "user",
-			"content": string(commandObject),
-		},
-	}
 	jsonObjectMap := map[string]interface{}{
-		"model":    "glm-4-flash",
-		"messages": talkListMap,
-		"type":     "text",
-		"stream":   true,
+		"model": "glm-4-flash",
+		"messages": []map[string]string{
+			{
+				"role":    "system",
+				"content": prompt,
+			},
+			{
+				"role":    "user",
+				"content": string(commandObject),
+			},
+		},
+		"type":   "text",
+		"stream": true,
 	}
 	jsonObject, err := json.Marshal(jsonObjectMap)
 	if err != nil {
