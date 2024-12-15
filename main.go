@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/joho/godotenv"
 )
 
@@ -89,11 +90,17 @@ func main() {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
 		return
 	}
-	commandObject, err := getDiff()
-	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
-		return
+	commandObject := ""
+	restartGetDiff := true
+	for restartGetDiff {
+		commandObject, err = getDiff()
+		if err != nil {
+			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
+			return
+		}
+		restartGetDiff, err = confirmation.New("获取差异失败了，可能是一些文件没有保存，要再尝试一次吗？", confirmation.Undecided).RunPrompt()
 	}
+
 	req, err := http.NewRequest("POST", LLM_API, nil)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"构建请求失败，原因：", err}...)
