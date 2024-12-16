@@ -63,16 +63,16 @@ func getDiffInStaged() (string, error) {
 }
 
 func getDiff() (string, bool, error) {
-	var b = false
+	var b = true
 	// 获取项目的差异
 	projectDiff, err := getDiffInDisk()
 	if err != nil {
 		return "", false, err
 	}
 	if projectDiff == "" {
-		// 如果项目没有差异，尝试获取暂存区的差异
+		// 如果项目没有差异，尝试获取暂存区外的差异
 		stashDiff, err := getDiffInStaged()
-		b = true
+		b = false
 		if err != nil {
 			return "", false, err
 		}
@@ -170,4 +170,10 @@ func main() {
 			fmt.Print(content)
 		}
 	}
+
+	// 是否需要添加文件到暂存区
+	if isNeedAddCommand {
+		fmt.Println("\n\n检测到暂存区外的文件差异，是否需要添加到暂存区？(y/n)")
+	}
+	// exec.command: git commit -m <data>
 }
