@@ -140,6 +140,7 @@ func main() {
 	defer resp.Body.Close()
 
 	scanner := bufio.NewScanner(resp.Body)
+	commitMessage := ""
 	for scanner.Scan() {
 		line := scanner.Text()
 		length := len(line)
@@ -169,6 +170,7 @@ func main() {
 		if len(event.Choices) > 0 && event.Choices[0].Delta.Content != "" {
 			content := event.Choices[0].Delta.Content
 			fmt.Print(content)
+			commitMessage += content
 		}
 	}
 
