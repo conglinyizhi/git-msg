@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/joho/godotenv"
 )
 
@@ -171,9 +172,27 @@ func main() {
 		}
 	}
 
-	// 是否需要添加文件到暂存区
-	if isNeedAddCommand {
-		fmt.Println("\n\n检测到暂存区外的文件差异，是否需要添加到暂存区？(y/n)")
+	// 询问用户是否提交，如果需要，则提交
+	goCommit, err := confirmation.New("need commit?", confirmation.Yes).RunPrompt()
+	if err != nil {
+		fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
+		return
 	}
-	// exec.command: git commit -m <data>
+	// 是否需要添加文件到暂存区
+	var goAdd = false
+	if isNeedAddCommand {
+		goAdd, err = confirmation.New("检测到暂存区外的文件差异，是否需要添加到暂存区？", confirmation.Yes).RunPrompt()
+		if err != nil {
+			fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
+			return
+		}
+	}
+
+	if goAdd {
+		fmt.Println("\n TODO: 添加文件到暂存区")
+	}
+
+	if goCommit {
+		fmt.Println("\n TODO: 提交")
+	}
 }
