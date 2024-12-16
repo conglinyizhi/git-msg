@@ -183,11 +183,15 @@ func main() {
 			commitMessage += content
 		}
 	}
-
+	fmt.Println()
 	// 询问用户是否提交，如果需要，则提交
-	goCommit, err := confirmation.New("need commit?", confirmation.Yes).RunPrompt()
+	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
+		return
+	}
+	if !goCommit {
+		fmt.Println("取消提交")
 		return
 	}
 	// 是否需要添加文件到暂存区
@@ -203,7 +207,6 @@ func main() {
 	if goAdd {
 		fmt.Println("\n TODO: 添加文件到暂存区")
 	}
-
 	if goCommit {
 		fmt.Println("\n TODO: 提交")
 	}
