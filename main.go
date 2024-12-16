@@ -19,14 +19,20 @@ const LLM_API = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
 
 const prompt = `请你作为一个专业的开发人员的角度，分析并深思熟虑改动的深层原因，用这些信息构成一个提交记录。要求控制文本必须用一行，最好在 30 字内，要求必须符合《约定式提交》<type>要求使用英文，描述范围优先使用模块的英文名，优先取更短的名称，其他地方使用简体中文(Zh-cn)。只需告诉我 30 字内内的正文，有些注释会提示修改内容的含义，如果有请结合注释。严格遵循的模板内容如下：<emoji> <type>(范围_使用简体中文): <描述_使用简体中文>
 
-emoji 和 type 的对应关系是这样的：🔬 test;🎨 style;🧹 chore;📚 docs;🔄 ci;🛠️ build;♻️ refactor;🐛 fix;✨ feat;🚀 perf; 
+emoji 和 type 的对应关系是这样的：
+test 🔬;
+style 🎨;
+chore 🧹;
+docs 📚;
+ci 🔄;
+build 🛠️;
+refactor ♻️;
+fix 🐛;
+feat ✨;
+perf 🚀;
 
 例如：
-🔬 test: 修改了测试用例
-🎨 style: 修改了代码样式
-🧹 chore: 修改了一些杂项
-📚 docs: 修改了文档
-🔄 ci: 修改了 CI 配置
+✨ test(cli.go): 新增了命令行功能 -t 参数，用于指定具体分类。
 `
 
 // 定义结构体来解析 JSON 数据
