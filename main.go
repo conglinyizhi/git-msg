@@ -94,13 +94,12 @@ func main() {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
 		return
 	}
-	promptByte, err := os.ReadFile("./prompt.txt")
-	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"读取 prompt.txt 文件失败，原因：", err}...)
-		return
-	}
-	prompt := string(promptByte)
-	commandObject, isNeedAddCommand, err := getDiff()
+	// promptByte, err := os.ReadFile("./prompt.txt")
+	// if err != nil {
+	// 	fmt.Fprintln(os.Stdout, []any{"读取 prompt.txt 文件失败，原因：", err}...)
+	// 	return
+	// }
+	diff, isNeedAddCommand, err := getDiff()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 		return
@@ -111,6 +110,7 @@ func main() {
 		fmt.Fprintln(os.Stdout, []any{"构建请求失败，原因：", err}...)
 		return
 	}
+	prompt := getPrompt()
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+TOKEN)
@@ -120,10 +120,9 @@ func main() {
 			{
 				"role":    "system",
 				"content": prompt,
-			},
-			{
+			}, {
 				"role":    "user",
-				"content": string(commandObject),
+				"content": diff,
 			},
 		},
 		"type":   "text",
