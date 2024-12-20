@@ -15,8 +15,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const LLM_API = "https://open.bigmodel.cn/api/paas/v4/chat/completions"
-
 // 定义结构体来解析 JSON 数据
 type Event struct {
 	ID      string `json:"id"`
@@ -32,16 +30,20 @@ type Event struct {
 	} `json:"choices"`
 }
 
-func getToken() (string, error) {
+func getToken() (string, string, error) {
 	err := godotenv.Load()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	token := os.Getenv("BIGMODEL_TOKEN")
-	if token == "" {
-		return "", fmt.Errorf("BIGMODEL_TOKEN 是空的，请通过 .env 填写")
+	TOKEN := os.Getenv("BIGMODEL_TOKEN")
+	if TOKEN == "" {
+		return "", "", fmt.Errorf("BIGMODEL_TOKEN 是空的，请通过 .env 填写")
 	}
-	return token, nil
+	LLM_API_URL := os.Getenv("LLM_API_URL")
+	if LLM_API_URL == "" {
+		return "", "", fmt.Errorf("LLM_API_URL 是空的，请通过.env 填写")
+	}
+	return TOKEN, LLM_API_URL, nil
 }
 
 func getDiffInDisk() (string, error) {
@@ -83,7 +85,7 @@ func getDiff() (string, bool, error) {
 }
 
 func main() {
-	token, err := getToken()
+	TOKEN, LLM_API_URL, err := getToken()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
 		return
@@ -100,14 +102,14 @@ func main() {
 		return
 	}
 
-	req, err := http.NewRequest("POST", LLM_API, nil)
+	req, err := http.NewRequest("POST", LLM_API_URL, nil)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"构建请求失败，原因：", err}...)
 		return
 	}
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Authorization", "Bearer "+TOKEN)
 	jsonObjectMap := map[string]interface{}{
 		"model": "glm-4-flash",
 		"messages": []map[string]string{
