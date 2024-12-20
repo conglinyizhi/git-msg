@@ -30,20 +30,24 @@ type Event struct {
 	} `json:"choices"`
 }
 
-func getToken() (string, string, error) {
+func getToken() (string, string, string, error) {
 	err := godotenv.Load()
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 	TOKEN := os.Getenv("BIGMODEL_TOKEN")
 	if TOKEN == "" {
-		return "", "", fmt.Errorf("BIGMODEL_TOKEN 是空的，请通过 .env 填写")
+		return "", "", "", fmt.Errorf("BIGMODEL_TOKEN 是空的，请通过 .env 填写")
 	}
 	LLM_API_URL := os.Getenv("LLM_API_URL")
 	if LLM_API_URL == "" {
-		return "", "", fmt.Errorf("LLM_API_URL 是空的，请通过.env 填写")
+		return "", "", "", fmt.Errorf("LLM_API_URL 是空的，请通过.env 填写")
 	}
-	return TOKEN, LLM_API_URL, nil
+	MODEL := os.Getenv("MODEL")
+	if MODEL == "" {
+		return "", "", "", fmt.Errorf("MODEL 是空的，请通过.env 填写")
+	}
+	return TOKEN, LLM_API_URL, MODEL, nil
 }
 
 func getDiffInDisk() (string, error) {
@@ -85,7 +89,7 @@ func getDiff() (string, bool, error) {
 }
 
 func main() {
-	TOKEN, LLM_API_URL, err := getToken()
+	TOKEN, LLM_API_URL, MODEL, err := getToken()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
 		return
@@ -111,7 +115,7 @@ func main() {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+TOKEN)
 	jsonObjectMap := map[string]interface{}{
-		"model": "glm-4-flash",
+		"model": MODEL,
 		"messages": []map[string]string{
 			{
 				"role":    "system",
