@@ -123,10 +123,7 @@ func main() {
 		"messages": []map[string]string{
 			{
 				"role":    "system",
-				"content": prompt,
-			}, {
-				"role":    "user",
-				"content": diff,
+				"content": prompt + diff,
 			},
 		},
 		"type":   "text",
