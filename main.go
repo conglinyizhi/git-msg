@@ -31,21 +31,25 @@ type Event struct {
 }
 
 func getToken() (string, string, string, error) {
+	errorMessageBuild := func(message string) error {
+		fmt.Println("提示：可以通过 .env 文件填写 BIGMODEL_TOKEN、LLM_API_URL、MODEL 三个参数")
+		return fmt.Errorf("%s", message+"没有填写")
+	}
 	err := godotenv.Load()
 	if err != nil {
 		return "", "", "", err
 	}
 	TOKEN := os.Getenv("BIGMODEL_TOKEN")
 	if TOKEN == "" {
-		return "", "", "", fmt.Errorf("BIGMODEL_TOKEN 是空的，请通过 .env 填写")
+		return "", "", "", errorMessageBuild("BIGMODEL_TOKEN")
 	}
 	LLM_API_URL := os.Getenv("LLM_API_URL")
 	if LLM_API_URL == "" {
-		return "", "", "", fmt.Errorf("LLM_API_URL 是空的，请通过.env 填写")
+		return "", "", "", errorMessageBuild("LLM_API_URL")
 	}
 	MODEL := os.Getenv("MODEL")
 	if MODEL == "" {
-		return "", "", "", fmt.Errorf("MODEL 是空的，请通过.env 填写")
+		return "", "", "", errorMessageBuild("MODEL")
 	}
 	return TOKEN, LLM_API_URL, MODEL, nil
 }
@@ -147,7 +151,7 @@ func main() {
 		return
 	}
 	defer resp.Body.Close()
-
+	fmt.Println("接口返回状态：", resp.StatusCode)
 	scanner := bufio.NewScanner(resp.Body)
 	commitMessage := ""
 	for scanner.Scan() {
@@ -173,6 +177,7 @@ func main() {
 		err := json.Unmarshal([]byte(line), &event)
 		if err != nil {
 			fmt.Println("解析 JSON 出错，原因:", err)
+			fmt.Println("原始 JSON 数据:", line)
 			continue
 		}
 		// 提取并打印 delta.content
