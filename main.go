@@ -98,11 +98,6 @@ func main() {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
 		return
 	}
-	// promptByte, err := os.ReadFile("./prompt.txt")
-	// if err != nil {
-	// 	fmt.Fprintln(os.Stdout, []any{"读取 prompt.txt 文件失败，原因：", err}...)
-	// 	return
-	// }
 	diff, isNeedAddCommand, err := getDiff()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
@@ -206,9 +201,21 @@ func main() {
 	}
 
 	if goAdd {
-		fmt.Println("\n TODO: 添加文件到暂存区")
+		stdout, err := exec.Command("git", []string{"add", "."}...).Output()
+		if err != nil {
+			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
+			return
+		}
+		fmt.Println("add . 输出的内容")
+		fmt.Println(string(stdout))
 	}
 	if goCommit {
-		fmt.Println("\n TODO: 提交")
+		stdout, err := exec.Command("git", []string{"commit", "-m", commitMessage}...).Output()
+		if err != nil {
+			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
+			return
+		}
+		fmt.Println("commit -m ... 输出的内容")
+		fmt.Println(string(stdout))
 	}
 }
