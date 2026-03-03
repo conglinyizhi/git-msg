@@ -219,7 +219,7 @@ func main() {
 	}
 
 	if goAdd {
-		stdout, err := exec.Command("git", []string{"add", "."}...).Output()
+		stdout, err := exec.Command(*gitCommand, []string{"add", "."}...).Output()
 		if err != nil {
 			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 			return
@@ -228,7 +228,7 @@ func main() {
 		fmt.Println(string(stdout))
 	}
 	if goCommit {
-		stdout, err := exec.Command("git", []string{"commit", "-m", commitMessage}...).Output()
+		stdout, err := exec.Command(*gitCommand, []string{"commit", "-m", commitMessage}...).Output()
 		if err != nil {
 			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 			return
