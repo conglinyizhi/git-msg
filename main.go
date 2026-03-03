@@ -193,10 +193,13 @@ func callRemoteURL(diff string, TOKEN string, BASE_URL string, MODEL_NAME string
 	return commitMessage.String(), nil
 }
 
-func callGitCommand(gitCommand, commitMessage string, isNeedAddCommand bool) error {
+func callGitCommand(gitCommand, commitMessage string, isNeedAdd bool) error {
+	askUser := func(title string) *confirmation.Confirmation {
+		return confirmation.New(title, confirmation.Yes)
+	}
 	fmt.Println()
 	// 询问用户是否提交，如果需要，则提交
-	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
+	goCommit, err := askUser("一切准备就绪，发起提交吗?").RunPrompt()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
 		return err
@@ -206,8 +209,8 @@ func callGitCommand(gitCommand, commitMessage string, isNeedAddCommand bool) err
 	}
 	// 是否需要添加文件到暂存区
 	var goAdd = false
-	if isNeedAddCommand {
-		goAdd, err = confirmation.New("检测到暂存区外的文件差异，是否需要添加到暂存区？", confirmation.Yes).RunPrompt()
+	if isNeedAdd {
+		goAdd, err = askUser("检测到暂存区外的文件差异，是否需要添加到暂存区？").RunPrompt()
 		if err != nil {
 			fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
 			return err
