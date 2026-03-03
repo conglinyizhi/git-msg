@@ -92,6 +92,9 @@ func getDiff() (string, bool, error) {
 			projectDiff = stashDiff
 		}
 	}
+	if len(projectDiff) < 1 {
+		return "", isStagedDiff, fmt.Errorf("git diff 没有捕获到有效信息，终止提交远程 API")
+	}
 	return projectDiff, isStagedDiff, nil
 }
 
