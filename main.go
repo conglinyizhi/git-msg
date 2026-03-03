@@ -73,10 +73,10 @@ func getDiffInStaged() (string, error) {
 	return string(commandObject), nil
 }
 
-// 获取差异，顺序尝试工作区和暂存区
+// 获取差异，顺序尝试暂存区和工作区
 func getDiff() (string, bool, error) {
 	var isStagedDiff = true
-	// 尝试获取暂存区外的差异
+	// 尝试获取暂存区的差异
 	projectDiff, err := getDiffInStaged()
 	if err != nil {
 		return "", isStagedDiff, err
