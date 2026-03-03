@@ -193,6 +193,48 @@ func callRemoteURL(diff string, TOKEN string, BASE_URL string, MODEL_NAME string
 	return commitMessage.String(), nil
 }
 
+func callGitCommand(gitCommand, commitMessage string, isNeedAddCommand bool) error {
+	fmt.Println()
+	// 询问用户是否提交，如果需要，则提交
+	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
+	if err != nil {
+		fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
+		return err
+	}
+	if !goCommit {
+		return fmt.Errorf("用户取消提交")
+	}
+	// 是否需要添加文件到暂存区
+	var goAdd = false
+	if isNeedAddCommand {
+		goAdd, err = confirmation.New("检测到暂存区外的文件差异，是否需要添加到暂存区？", confirmation.Yes).RunPrompt()
+		if err != nil {
+			fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
+			return err
+		}
+	}
+
+	if goAdd {
+		stdout, err := exec.Command(gitCommand, []string{"add", "."}...).Output()
+		if err != nil {
+			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
+			return err
+		}
+		fmt.Println("add . 输出的内容")
+		fmt.Println(string(stdout))
+	}
+	if goCommit {
+		stdout, err := exec.Command(gitCommand, []string{"commit", "-m", commitMessage}...).Output()
+		if err != nil {
+			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
+			return err
+		}
+		fmt.Println("commit -m ... 输出的内容")
+		fmt.Println(string(stdout))
+	}
+	return nil
+}
+
 // 主函数
 func main() {
 	var gitCommand = pflag.StringP("git", "g", "git", "Git 指令替换，比如某些情况下用于替换为 yadm 等 Git Like 项目")
@@ -215,49 +257,8 @@ func main() {
 		fmt.Fprintln(os.Stdout, []any{"调用远程大模型失败，原因：", err}...)
 		return
 	}
-
-	fmt.Println()
-	// 询问用户是否提交，如果需要，则提交
-	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
+	err = callGitCommand(*gitCommand, commitMessage, isNeedAddCommand)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
 		afterRemoteCallRollback(commitMessage)
-		return
-	}
-	if !goCommit {
-		fmt.Println("取消提交")
-		afterRemoteCallRollback(commitMessage)
-		return
-	}
-	// 是否需要添加文件到暂存区
-	var goAdd = false
-	if isNeedAddCommand {
-		goAdd, err = confirmation.New("检测到暂存区外的文件差异，是否需要添加到暂存区？", confirmation.Yes).RunPrompt()
-		if err != nil {
-			fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
-			afterRemoteCallRollback(commitMessage)
-			return
-		}
-	}
-
-	if goAdd {
-		stdout, err := exec.Command(*gitCommand, []string{"add", "."}...).Output()
-		if err != nil {
-			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
-			afterRemoteCallRollback(commitMessage)
-			return
-		}
-		fmt.Println("add . 输出的内容")
-		fmt.Println(string(stdout))
-	}
-	if goCommit {
-		stdout, err := exec.Command(*gitCommand, []string{"commit", "-m", commitMessage}...).Output()
-		if err != nil {
-			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
-			afterRemoteCallRollback(commitMessage)
-			return
-		}
-		fmt.Println("commit -m ... 输出的内容")
-		fmt.Println(string(stdout))
 	}
 }
