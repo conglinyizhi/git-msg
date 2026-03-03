@@ -30,6 +30,7 @@ type Event struct {
 	} `json:"choices"`
 }
 
+// 获取配置文件
 func getToken() (string, string, string, error) {
 	errorMessageBuild := func(message string) error {
 		fmt.Println("提示：可以通过 .env 文件填写 BIGMODEL_TOKEN、LLM_API_URL、MODEL 三个参数")
@@ -54,6 +55,7 @@ func getToken() (string, string, string, error) {
 	return TOKEN, LLM_API_URL, MODEL, nil
 }
 
+// 获取工作区差异
 func getDiffInDisk() (string, error) {
 	commandObject, err := exec.Command("git", []string{"diff"}...).Output()
 	if err != nil {
@@ -71,6 +73,7 @@ func getDiffInStaged() (string, error) {
 	return string(commandObject), nil
 }
 
+// 获取差异，顺序尝试工作区和暂存区
 func getDiff() (string, bool, error) {
 	var b = true
 	// 获取项目的差异
@@ -92,6 +95,7 @@ func getDiff() (string, bool, error) {
 	return projectDiff, b, nil
 }
 
+// 主函数
 func main() {
 	TOKEN, LLM_API_URL, MODEL, err := getToken()
 	if err != nil {
