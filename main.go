@@ -135,7 +135,7 @@ func callRemoteURL(diff string, TOKEN string, LLM_API_URL string, MODEL string) 
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	if err != nil {
+	if err != nil || resp.StatusCode != 200 {
 		return "", fmt.Errorf("HTTP 请求失败，原因：%w", err)
 	}
 	defer resp.Body.Close()
