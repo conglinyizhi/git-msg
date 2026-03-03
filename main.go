@@ -181,7 +181,7 @@ func callRemoteURL(diff string, TOKEN string, LLM_API_URL string, MODEL string) 
 // 主函数
 func main() {
 	var gitCommand = flag.String("git", "git", "Git 指令替换，比如某些情况下用于替换为 yadm 等 Git Like 项目")
-
+	flag.Parse()
 	TOKEN, LLM_API_URL, MODEL, err := getToken()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
