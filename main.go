@@ -121,7 +121,7 @@ func callRemoteURL(diff string, TOKEN string, BASE_URL string, MODEL_NAME string
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+TOKEN)
 	jsonObjectMap := map[string]interface{}{
-		"MODEL_NAME": MODEL_NAME,
+		"model": MODEL_NAME,
 		"messages": []map[string]string{
 			{
 				"role":    "system",
@@ -147,8 +147,11 @@ func callRemoteURL(diff string, TOKEN string, BASE_URL string, MODEL_NAME string
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	if err != nil || resp.StatusCode != 200 {
+	if err != nil {
 		return "", fmt.Errorf("HTTP 请求失败，原因：%w", err)
+	}
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("状态码不在预期内：%d", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 	var commitMessage strings.Builder
