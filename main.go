@@ -194,21 +194,25 @@ func callRemoteURL(diff string, TOKEN string, LLM_API_URL string, MODEL string) 
 func main() {
 	var gitCommand = pflag.StringP("git", "g", "git", "Git 指令替换，比如某些情况下用于替换为 yadm 等 Git Like 项目")
 	pflag.Parse()
+
 	TOKEN, LLM_API_URL, MODEL, err := getConfigValue()
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
+		fmt.Fprintln(os.Stdout, []any{"获取大模型配置信息失败：", err}...)
 		return
 	}
+
 	diff, isNeedAddCommand, err := getDiff(*gitCommand)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
+		fmt.Fprintln(os.Stdout, []any{"获取差异信息失败，原因：", err}...)
 		return
 	}
+
 	commitMessage, err := callRemoteURL(diff, TOKEN, LLM_API_URL, MODEL)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"callRemoteURL 函数报错，原因：", err}...)
+		fmt.Fprintln(os.Stdout, []any{"调用远程大模型失败，原因：", err}...)
 		return
 	}
+
 	fmt.Println()
 	// 询问用户是否提交，如果需要，则提交
 	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
