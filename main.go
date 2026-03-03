@@ -19,10 +19,10 @@ import (
 
 // 定义结构体来解析 JSON 数据
 type Event struct {
-	ID      string `json:"id"`
-	Created int64  `json:"created"`
-	Model   string `json:"model"`
-	Choices []struct {
+	ID         string `json:"id"`
+	Created    int64  `json:"created"`
+	MODEL_NAME string `json:"MODEL_NAME"`
+	Choices    []struct {
 		Index        int    `json:"index"`
 		FinishReason string `json:"finish_reason"`
 		Delta        struct {
@@ -35,26 +35,26 @@ type Event struct {
 // 获取配置文件
 func getConfigValue() (string, string, string, error) {
 	errorMessageBuild := func(message string) error {
-		fmt.Println("提示：可以通过 .env 文件填写 BIGMODEL_TOKEN、LLM_API_URL、MODEL 三个参数")
+		fmt.Println("提示：可以通过 .env 文件填写 API_KEY、BASE_URL、MODEL_NAME 三个参数")
 		return fmt.Errorf("%s", message+"没有填写")
 	}
 	err := godotenv.Load()
 	if err != nil {
 		return "", "", "", err
 	}
-	TOKEN := os.Getenv("BIGMODEL_TOKEN")
+	TOKEN := os.Getenv("API_KEY")
 	if TOKEN == "" {
-		return "", "", "", errorMessageBuild("BIGMODEL_TOKEN")
+		return "", "", "", errorMessageBuild("API_KEY")
 	}
-	LLM_API_URL := os.Getenv("LLM_API_URL")
-	if LLM_API_URL == "" {
-		return "", "", "", errorMessageBuild("LLM_API_URL")
+	BASE_URL := os.Getenv("BASE_URL")
+	if BASE_URL == "" {
+		return "", "", "", errorMessageBuild("BASE_URL")
 	}
-	MODEL := os.Getenv("MODEL")
-	if MODEL == "" {
-		return "", "", "", errorMessageBuild("MODEL")
+	MODEL_NAME := os.Getenv("MODEL_NAME")
+	if MODEL_NAME == "" {
+		return "", "", "", errorMessageBuild("MODEL_NAME")
 	}
-	return TOKEN, LLM_API_URL, MODEL, nil
+	return TOKEN, BASE_URL, MODEL_NAME, nil
 }
 
 // 获取工作区差异
@@ -111,8 +111,8 @@ func afterRemoteCallRollback(msg string) {
 	println("[回退]大模型输出结果将保存到", tmpFilePath)
 }
 
-func callRemoteURL(diff string, TOKEN string, LLM_API_URL string, MODEL string) (string, error) {
-	req, err := http.NewRequest("POST", LLM_API_URL, nil)
+func callRemoteURL(diff string, TOKEN string, BASE_URL string, MODEL_NAME string) (string, error) {
+	req, err := http.NewRequest("POST", BASE_URL, nil)
 	if err != nil {
 		return "", fmt.Errorf("请求构建失败，详情：%w", err)
 	}
@@ -121,7 +121,7 @@ func callRemoteURL(diff string, TOKEN string, LLM_API_URL string, MODEL string) 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+TOKEN)
 	jsonObjectMap := map[string]interface{}{
-		"model": MODEL,
+		"MODEL_NAME": MODEL_NAME,
 		"messages": []map[string]string{
 			{
 				"role":    "system",
@@ -195,7 +195,7 @@ func main() {
 	var gitCommand = pflag.StringP("git", "g", "git", "Git 指令替换，比如某些情况下用于替换为 yadm 等 Git Like 项目")
 	pflag.Parse()
 
-	TOKEN, LLM_API_URL, MODEL, err := getConfigValue()
+	TOKEN, BASE_URL, MODEL_NAME, err := getConfigValue()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型配置信息失败：", err}...)
 		return
@@ -207,7 +207,7 @@ func main() {
 		return
 	}
 
-	commitMessage, err := callRemoteURL(diff, TOKEN, LLM_API_URL, MODEL)
+	commitMessage, err := callRemoteURL(diff, TOKEN, BASE_URL, MODEL_NAME)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"调用远程大模型失败，原因：", err}...)
 		return
