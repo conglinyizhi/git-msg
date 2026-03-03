@@ -75,16 +75,16 @@ func getDiffInStaged() (string, error) {
 
 // 获取差异，顺序尝试工作区和暂存区
 func getDiff() (string, bool, error) {
-	var b = true
+	var isStagedDiff = true
 	// 尝试获取暂存区外的差异
 	projectDiff, err := getDiffInStaged()
 	if err != nil {
-		return "", false, err
+		return "", isStagedDiff, err
 	}
+	isStagedDiff = false
 	if projectDiff == "" {
 		// 如果项目没有差异，尝试获取项目的差异
 		stashDiff, err := getDiffInDisk()
-		b = false
 		if err != nil {
 			return "", false, err
 		}
@@ -92,7 +92,7 @@ func getDiff() (string, bool, error) {
 			projectDiff = stashDiff
 		}
 	}
-	return projectDiff, b, nil
+	return projectDiff, isStagedDiff, nil
 }
 
 // 主函数
