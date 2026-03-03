@@ -95,23 +95,10 @@ func getDiff() (string, bool, error) {
 	return projectDiff, isStagedDiff, nil
 }
 
-// 主函数
-func main() {
-	TOKEN, LLM_API_URL, MODEL, err := getToken()
-	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
-		return
-	}
-	diff, isNeedAddCommand, err := getDiff()
-	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
-		return
-	}
-
+func callRemoteURL(diff string, TOKEN string, LLM_API_URL string, MODEL string) (string, error) {
 	req, err := http.NewRequest("POST", LLM_API_URL, nil)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"构建请求失败，原因：", err}...)
-		return
+		return "", fmt.Errorf("请求构建失败，详情：%w", err)
 	}
 	prompt := getPrompt()
 
@@ -130,8 +117,7 @@ func main() {
 	}
 	jsonObject, err := json.Marshal(jsonObjectMap)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"json.Marshal JSON解析失败，原因：", err}...)
-		return
+		return "", fmt.Errorf("json.Marshal JSON解析失败，原因：%w", err)
 	}
 
 	// 根据字符串准备一个Reader
@@ -143,13 +129,12 @@ func main() {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"HTTP 请求失败，原因：", err}...)
-		return
+		return "", fmt.Errorf("HTTP 请求失败，原因：%w", err)
 	}
 	defer resp.Body.Close()
+	var commitMessage strings.Builder
 	fmt.Println("接口返回状态：", resp.StatusCode)
 	scanner := bufio.NewScanner(resp.Body)
-	commitMessage := ""
 	for scanner.Scan() {
 		line := scanner.Text()
 		length := len(line)
@@ -180,8 +165,28 @@ func main() {
 		if len(event.Choices) > 0 && event.Choices[0].Delta.Content != "" {
 			content := event.Choices[0].Delta.Content
 			fmt.Print(content)
-			commitMessage += content
+			commitMessage.WriteString(content)
 		}
+	}
+	return commitMessage.String(), nil
+}
+
+// 主函数
+func main() {
+	TOKEN, LLM_API_URL, MODEL, err := getToken()
+	if err != nil {
+		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
+		return
+	}
+	diff, isNeedAddCommand, err := getDiff()
+	if err != nil {
+		fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
+		return
+	}
+	commitMessage, err := callRemoteURL(diff, TOKEN, LLM_API_URL, MODEL)
+	if err != nil {
+		fmt.Fprintln(os.Stdout, []any{"callRemoteURL 函数报错，原因：", err}...)
+		return
 	}
 	fmt.Println()
 	// 询问用户是否提交，如果需要，则提交
