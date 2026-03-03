@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net/http"
@@ -56,8 +57,8 @@ func getToken() (string, string, string, error) {
 }
 
 // 获取工作区差异
-func getDiffInDisk() (string, error) {
-	commandObject, err := exec.Command("git", []string{"diff", "-U10"}...).Output()
+func getDiffInDisk(gitCommand string) (string, error) {
+	commandObject, err := exec.Command(gitCommand, []string{"diff", "-U10"}...).Output()
 	if err != nil {
 		return "", err
 	}
@@ -65,8 +66,8 @@ func getDiffInDisk() (string, error) {
 }
 
 // 获取暂存区的差异
-func getDiffInStaged() (string, error) {
-	commandObject, err := exec.Command("git", []string{"diff", "--staged", "-U10"}...).Output()
+func getDiffInStaged(gitCommand string) (string, error) {
+	commandObject, err := exec.Command(gitCommand, []string{"diff", "--staged", "-U10"}...).Output()
 	if err != nil {
 		return "", err
 	}
@@ -74,17 +75,17 @@ func getDiffInStaged() (string, error) {
 }
 
 // 获取差异，顺序尝试暂存区和工作区
-func getDiff() (string, bool, error) {
+func getDiff(gitCommand string) (string, bool, error) {
 	var isStagedDiff = false
 	// 尝试获取暂存区的差异
-	projectDiff, err := getDiffInStaged()
+	projectDiff, err := getDiffInStaged(gitCommand)
 	if err != nil {
 		return "", isStagedDiff, err
 	}
 	isStagedDiff = true
 	if projectDiff == "" {
 		// 如果项目没有差异，尝试获取项目的差异
-		stashDiff, err := getDiffInDisk()
+		stashDiff, err := getDiffInDisk(gitCommand)
 		if err != nil {
 			return "", isStagedDiff, err
 		}
@@ -179,12 +180,14 @@ func callRemoteURL(diff string, TOKEN string, LLM_API_URL string, MODEL string) 
 
 // 主函数
 func main() {
+	var gitCommand = flag.String("git", "git", "Git 指令替换，比如某些情况下用于替换为 yadm 等 Git Like 项目")
+
 	TOKEN, LLM_API_URL, MODEL, err := getToken()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
 		return
 	}
-	diff, isNeedAddCommand, err := getDiff()
+	diff, isNeedAddCommand, err := getDiff(*gitCommand)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 		return
