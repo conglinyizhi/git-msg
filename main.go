@@ -57,7 +57,7 @@ func getToken() (string, string, string, error) {
 
 // 获取工作区差异
 func getDiffInDisk() (string, error) {
-	commandObject, err := exec.Command("git", []string{"diff"}...).Output()
+	commandObject, err := exec.Command("git", []string{"diff", "-U10"}...).Output()
 	if err != nil {
 		return "", err
 	}
@@ -66,7 +66,7 @@ func getDiffInDisk() (string, error) {
 
 // 获取暂存区的差异
 func getDiffInStaged() (string, error) {
-	commandObject, err := exec.Command("git", []string{"diff", "--staged"}...).Output()
+	commandObject, err := exec.Command("git", []string{"diff", "--staged", "-U10"}...).Output()
 	if err != nil {
 		return "", err
 	}
@@ -109,7 +109,10 @@ func callRemoteURL(diff string, TOKEN string, LLM_API_URL string, MODEL string) 
 		"messages": []map[string]string{
 			{
 				"role":    "system",
-				"content": prompt + diff,
+				"content": prompt,
+			}, {
+				"role":    "user",
+				"content": diff,
 			},
 		},
 		"type":   "text",
