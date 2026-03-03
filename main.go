@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/erikgeiser/promptkit/confirmation"
@@ -97,6 +98,17 @@ func getDiff(gitCommand string) (string, bool, error) {
 		return "", isStagedDiff, fmt.Errorf("git diff 没有捕获到有效信息，终止提交远程 API")
 	}
 	return projectDiff, isStagedDiff, nil
+}
+
+// 当调用 LLM 接口后程序后处理报错时回退
+func afterRemoteCallRollback(msg string) {
+	tmpFilePath := filepath.Join(os.TempDir(), "git-commit-lastet.txt")
+	err := os.WriteFile(tmpFilePath, []byte(msg), 0666)
+	if err != nil {
+		fmt.Fprintln(os.Stdout, []any{"[回退]失败，原因：", err}...)
+		return
+	}
+	println("[回退]大模型输出结果将保存到", tmpFilePath)
 }
 
 func callRemoteURL(diff string, TOKEN string, LLM_API_URL string, MODEL string) (string, error) {
@@ -202,10 +214,12 @@ func main() {
 	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
+		afterRemoteCallRollback(commitMessage)
 		return
 	}
 	if !goCommit {
 		fmt.Println("取消提交")
+		afterRemoteCallRollback(commitMessage)
 		return
 	}
 	// 是否需要添加文件到暂存区
@@ -214,6 +228,7 @@ func main() {
 		goAdd, err = confirmation.New("检测到暂存区外的文件差异，是否需要添加到暂存区？", confirmation.Yes).RunPrompt()
 		if err != nil {
 			fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
+			afterRemoteCallRollback(commitMessage)
 			return
 		}
 	}
@@ -222,6 +237,7 @@ func main() {
 		stdout, err := exec.Command(*gitCommand, []string{"add", "."}...).Output()
 		if err != nil {
 			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
+			afterRemoteCallRollback(commitMessage)
 			return
 		}
 		fmt.Println("add . 输出的内容")
@@ -231,6 +247,7 @@ func main() {
 		stdout, err := exec.Command(*gitCommand, []string{"commit", "-m", commitMessage}...).Output()
 		if err != nil {
 			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
+			afterRemoteCallRollback(commitMessage)
 			return
 		}
 		fmt.Println("commit -m ... 输出的内容")
