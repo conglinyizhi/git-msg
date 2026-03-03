@@ -32,7 +32,7 @@ type Event struct {
 }
 
 // 获取配置文件
-func getToken() (string, string, string, error) {
+func getConfigValue() (string, string, string, error) {
 	errorMessageBuild := func(message string) error {
 		fmt.Println("提示：可以通过 .env 文件填写 BIGMODEL_TOKEN、LLM_API_URL、MODEL 三个参数")
 		return fmt.Errorf("%s", message+"没有填写")
@@ -182,7 +182,7 @@ func callRemoteURL(diff string, TOKEN string, LLM_API_URL string, MODEL string) 
 func main() {
 	var gitCommand = pflag.StringP("git", "g", "git", "Git 指令替换，比如某些情况下用于替换为 yadm 等 Git Like 项目")
 	pflag.Parse()
-	TOKEN, LLM_API_URL, MODEL, err := getToken()
+	TOKEN, LLM_API_URL, MODEL, err := getConfigValue()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型 key 失败：", err}...)
 		return
