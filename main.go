@@ -32,29 +32,36 @@ type Event struct {
 	} `json:"choices"`
 }
 
+type RemoteAPIConfig struct {
+	API_KEY    string
+	BASE_URL   string
+	MODEL_NAME string
+}
+
 // 获取配置文件
-func getConfigValue() (string, string, string, error) {
+func getConfigValue() (RemoteAPIConfig, error) {
 	errorMessageBuild := func(message string) error {
 		fmt.Println("提示：可以通过 .env 文件填写 API_KEY、BASE_URL、MODEL_NAME 三个参数")
 		return fmt.Errorf("%s", message+"没有填写")
 	}
+	config := RemoteAPIConfig{}
 	err := godotenv.Load()
 	if err != nil {
-		return "", "", "", err
+		return config, err
 	}
-	TOKEN := os.Getenv("API_KEY")
-	if TOKEN == "" {
-		return "", "", "", errorMessageBuild("API_KEY")
+	config.API_KEY = os.Getenv("API_KEY")
+	if config.API_KEY == "" {
+		return config, errorMessageBuild("API_KEY")
 	}
-	BASE_URL := os.Getenv("BASE_URL")
-	if BASE_URL == "" {
-		return "", "", "", errorMessageBuild("BASE_URL")
+	config.BASE_URL = os.Getenv("BASE_URL")
+	if config.BASE_URL == "" {
+		return config, errorMessageBuild("BASE_URL")
 	}
-	MODEL_NAME := os.Getenv("MODEL_NAME")
-	if MODEL_NAME == "" {
-		return "", "", "", errorMessageBuild("MODEL_NAME")
+	config.MODEL_NAME = os.Getenv("MODEL_NAME")
+	if config.MODEL_NAME == "" {
+		return config, errorMessageBuild("MODEL_NAME")
 	}
-	return TOKEN, BASE_URL, MODEL_NAME, nil
+	return config, nil
 }
 
 // 获取工作区差异
@@ -111,17 +118,17 @@ func afterRemoteCallRollback(msg string) {
 	println("[回退]大模型输出结果将保存到", tmpFilePath)
 }
 
-func callRemoteURL(diff string, TOKEN string, BASE_URL string, MODEL_NAME string) (string, error) {
-	req, err := http.NewRequest("POST", BASE_URL, nil)
+func callRemoteURL(diff string, config RemoteAPIConfig) (string, error) {
+	req, err := http.NewRequest("POST", config.BASE_URL, nil)
 	if err != nil {
 		return "", fmt.Errorf("请求构建失败，详情：%w", err)
 	}
 	prompt := getPrompt()
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+TOKEN)
+	req.Header.Add("Authorization", "Bearer "+config.API_KEY)
 	jsonObjectMap := map[string]interface{}{
-		"model": MODEL_NAME,
+		"model": config.MODEL_NAME,
 		"messages": []map[string]string{
 			{
 				"role":    "system",
@@ -248,7 +255,7 @@ func parseCommandLineExData() string {
 func main() {
 	gitCommand := parseCommandLineExData()
 
-	TOKEN, BASE_URL, MODEL_NAME, err := getConfigValue()
+	config, err := getConfigValue()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型配置信息失败：", err}...)
 		return
@@ -260,7 +267,7 @@ func main() {
 		return
 	}
 
-	commitMessage, err := callRemoteURL(diff, TOKEN, BASE_URL, MODEL_NAME)
+	commitMessage, err := callRemoteURL(diff, config)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"调用远程大模型失败，原因：", err}...)
 		return
