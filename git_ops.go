@@ -13,9 +13,9 @@ func getDiff(cmd CommandlineConfig) (string, bool, error) {
 	if err != nil {
 		return "", isStagedDiff, err
 	}
-	isStagedDiff = true
+	// 如果项目没有差异，尝试获取项目的差异
 	if projectDiff == "" {
-		// 如果项目没有差异，尝试获取项目的差异
+		isStagedDiff = true
 		stashDiff, err := getDiffInDisk(cmd)
 		if err != nil {
 			return "", isStagedDiff, err
