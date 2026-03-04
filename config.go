@@ -26,7 +26,7 @@ func getConfigValue() (RemoteAPIConfig, error) {
 	tomlConfigBody, err := os.ReadFile(configPath)
 	if err != nil {
 		fmt.Println("未能成功读取预期在 " + configPath + " 的配置文件，尝试读取环境变量……")
-		initNewTomlFile(err, config)
+		initNewTomlFileIfNeed(err, config)
 		return tryReadEnv()
 	}
 	err = toml.Unmarshal(tomlConfigBody, &config)
@@ -40,11 +40,7 @@ func getConfigValue() (RemoteAPIConfig, error) {
 	return config, nil
 }
 
-// 判断错误是 syscall.ENOENT (文件不存在) 就尝试创建文件
-func initNewTomlFile(err error, config RemoteAPIConfig) error {
-	if !errors.Is(err, syscall.ENOENT) {
-		return nil
-	}
+func initNewTomlFile(config RemoteAPIConfig) error {
 	configRootDir, err := getConfigRootDir("")
 	if err != nil {
 		return fmt.Errorf("定位配置文件路径错误:%w", err)
@@ -64,6 +60,14 @@ func initNewTomlFile(err error, config RemoteAPIConfig) error {
 		return err
 	}
 	return nil
+}
+
+// 判断错误是 syscall.ENOENT (文件不存在) 就尝试创建文件
+func initNewTomlFileIfNeed(err error, cfg RemoteAPIConfig) error {
+	if !errors.Is(err, syscall.ENOENT) {
+		return nil
+	}
+	return initNewTomlFile(cfg)
 }
 
 // 回退 - 使用系统变量

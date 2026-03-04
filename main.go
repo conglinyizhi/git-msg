@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -212,8 +213,31 @@ func main() {
 }
 
 func initConfigDir(rootDir string) error {
-	return os.MkdirAll(filepath.Join(rootDir), 0644)
+	if err := os.MkdirAll(filepath.Join(rootDir), 0755); err != nil {
+		return err
+	}
+	return initNewTomlFile(RemoteAPIConfig{})
 }
+
+//go:embed skill/*
+var skillFilesEmbed embed.FS
+
 func initSkillDir(rootDir string) error {
-	return os.MkdirAll(filepath.Join(rootDir, "skill"), 0644)
+	if err := os.MkdirAll(filepath.Join(rootDir, "skill"), 0755); err != nil {
+		return err
+	}
+	skillFiles, err := skillFilesEmbed.ReadDir("skill")
+	if err != nil {
+		return err
+	}
+	for _, skill := range skillFiles {
+		data, err := os.ReadFile(skill.Name())
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(filepath.Join(rootDir, "skill", skill.Name()), data, 0644); err != nil {
+			return err
+		}
+	}
+	return nil
 }
