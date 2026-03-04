@@ -38,6 +38,10 @@ type RemoteAPIConfig struct {
 	MODEL_NAME string
 }
 
+type CommandlineConfig struct {
+	git string
+}
+
 // 获取配置文件
 func getConfigValue() (RemoteAPIConfig, error) {
 	errorMessageBuild := func(message string) error {
@@ -65,8 +69,8 @@ func getConfigValue() (RemoteAPIConfig, error) {
 }
 
 // 获取工作区差异
-func getDiffInDisk(gitCommand string) (string, error) {
-	commandObject, err := exec.Command(gitCommand, []string{"diff", "-U10"}...).Output()
+func getDiffInDisk(cmd CommandlineConfig) (string, error) {
+	commandObject, err := exec.Command(cmd.git, []string{"diff", "-U10"}...).Output()
 	if err != nil {
 		return "", err
 	}
@@ -74,8 +78,8 @@ func getDiffInDisk(gitCommand string) (string, error) {
 }
 
 // 获取暂存区的差异
-func getDiffInStaged(gitCommand string) (string, error) {
-	commandObject, err := exec.Command(gitCommand, []string{"diff", "--staged", "-U10"}...).Output()
+func getDiffInStaged(cmd CommandlineConfig) (string, error) {
+	commandObject, err := exec.Command(cmd.git, []string{"diff", "--staged", "-U10"}...).Output()
 	if err != nil {
 		return "", err
 	}
@@ -83,17 +87,17 @@ func getDiffInStaged(gitCommand string) (string, error) {
 }
 
 // 获取差异，顺序尝试暂存区和工作区
-func getDiff(gitCommand string) (string, bool, error) {
+func getDiff(cmd CommandlineConfig) (string, bool, error) {
 	var isStagedDiff = false
 	// 尝试获取暂存区的差异
-	projectDiff, err := getDiffInStaged(gitCommand)
+	projectDiff, err := getDiffInStaged(cmd)
 	if err != nil {
 		return "", isStagedDiff, err
 	}
 	isStagedDiff = true
 	if projectDiff == "" {
 		// 如果项目没有差异，尝试获取项目的差异
-		stashDiff, err := getDiffInDisk(gitCommand)
+		stashDiff, err := getDiffInDisk(cmd)
 		if err != nil {
 			return "", isStagedDiff, err
 		}
@@ -200,7 +204,7 @@ func callRemoteURL(diff string, config RemoteAPIConfig) (string, error) {
 	return commitMessage.String(), nil
 }
 
-func callGitCommand(gitCommand, commitMessage string, isNeedAdd bool) error {
+func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error {
 	askUser := func(title string) *confirmation.Confirmation {
 		return confirmation.New(title, confirmation.Yes)
 	}
@@ -225,7 +229,7 @@ func callGitCommand(gitCommand, commitMessage string, isNeedAdd bool) error {
 	}
 
 	if goAdd {
-		stdout, err := exec.Command(gitCommand, []string{"add", "."}...).Output()
+		stdout, err := exec.Command(cmd.git, []string{"add", "."}...).Output()
 		if err != nil {
 			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 			return err
@@ -234,7 +238,7 @@ func callGitCommand(gitCommand, commitMessage string, isNeedAdd bool) error {
 		fmt.Println(string(stdout))
 	}
 	if goCommit {
-		stdout, err := exec.Command(gitCommand, []string{"commit", "-m", commitMessage}...).Output()
+		stdout, err := exec.Command(cmd.git, []string{"commit", "-m", commitMessage}...).Output()
 		if err != nil {
 			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 			return err
@@ -245,15 +249,16 @@ func callGitCommand(gitCommand, commitMessage string, isNeedAdd bool) error {
 	return nil
 }
 
-func parseCommandLineExData() string {
-	var gitCommand = pflag.StringP("git", "g", "git", "Git 指令替换，比如某些情况下用于替换为 yadm 等 Git Like 项目")
+func parseCommandLineExData() CommandlineConfig {
+	cmdConfig := CommandlineConfig{}
+	cmdConfig.git = *pflag.StringP("git", "g", "git", "Git 指令替换，比如某些情况下用于替换为 yadm 等 Git Like 项目")
 	pflag.Parse()
-	return *gitCommand
+	return cmdConfig
 }
 
 // 主函数
 func main() {
-	gitCommand := parseCommandLineExData()
+	cmdConfig := parseCommandLineExData()
 
 	config, err := getConfigValue()
 	if err != nil {
@@ -261,7 +266,7 @@ func main() {
 		return
 	}
 
-	diff, isNeedAddCommand, err := getDiff(gitCommand)
+	diff, isNeedAddCommand, err := getDiff(cmdConfig)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取差异信息失败，原因：", err}...)
 		return
@@ -272,7 +277,7 @@ func main() {
 		fmt.Fprintln(os.Stdout, []any{"调用远程大模型失败，原因：", err}...)
 		return
 	}
-	err = callGitCommand(gitCommand, commitMessage, isNeedAddCommand)
+	err = callcmd(cmdConfig, commitMessage, isNeedAddCommand)
 	if err != nil {
 		afterRemoteCallRollback(commitMessage)
 	}
