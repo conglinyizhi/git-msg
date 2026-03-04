@@ -3,6 +3,10 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/erikgeiser/promptkit/selection"
 )
 
 const defaultPrompt = `你是拥有数年开发经验的专业全职软硬件开发者。现在请根据提供的差异信息，分析改动的原因，用这些信息构成一个提交记录，信息简略。这应该是 30 字内的一行文本，符合《约定式提交》。
@@ -18,10 +22,38 @@ func genErrorAndUseDefaultPrompt(errMsg string, e error) string {
 
 // LLM 提示词
 func getPrompt() string {
-	skillBuff, err := os.ReadFile("./skills/clyzhi-git.md")
+	pathFileList, err := os.ReadDir("./skills/")
 	if err != nil {
-		genErrorAndUseDefaultPrompt("读取文件", err)
-		return defaultPrompt
+		return genErrorAndUseDefaultPrompt("访问 skills 目录", err)
+	}
+	skillFile := []os.DirEntry{}
+	skillFileName := []string{}
+	for _, file := range pathFileList {
+		if strings.Split(file.Name(), ".")[1] == "md" {
+			skillFile = append(skillFile, file)
+			skillFileName = append(skillFileName, file.Name())
+		}
+	}
+	var skillBuff []byte
+	skillFileLength := len(skillFile)
+	switch skillFileLength {
+	case 0:
+		return genErrorAndUseDefaultPrompt("查找有效 skill 文件", nil)
+	case 1:
+		skillBuff, err = os.ReadFile(filepath.Join("./skills", skillFileName[0]))
+		if err != nil {
+			genErrorAndUseDefaultPrompt("读取文件", err)
+			return defaultPrompt
+		}
+		return string(skillBuff)
+	}
+	sp := selection.New("请选择要执行的 System Prompt", skillFileName)
+	sp.PageSize = 10
+	spResult, err := sp.RunPrompt()
+	fullPath := filepath.Join("./skills", spResult)
+	skillBuff, err = os.ReadFile(fullPath)
+	if err != nil {
+		return genErrorAndUseDefaultPrompt("读取"+fullPath+"文件", err)
 	}
 	return string(skillBuff)
 }
