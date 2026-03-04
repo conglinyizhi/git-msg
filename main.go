@@ -216,7 +216,11 @@ func initConfigDir(rootDir string) error {
 	if err := os.MkdirAll(filepath.Join(rootDir), 0755); err != nil {
 		return err
 	}
-	return initNewTomlFile(RemoteAPIConfig{})
+	if err := initNewTomlFile(RemoteAPIConfig{}); err != nil {
+		return err
+	}
+	fmt.Println("配置文件完成初始化，请打开并填写文件 " + filepath.Join(rootDir, "llm.toml"))
+	return nil
 }
 
 //go:embed skill/*
@@ -236,11 +240,14 @@ func initSkillDir(rootDir string) error {
 		}
 		data, err := skillFilesEmbed.ReadFile(filepath.Join("skill", skill.Name()))
 		if err != nil {
-			return err
+			fmt.Println("提取" + filepath.Join(rootDir, "skill", skill.Name()) + "失败（读取文件出错），原因：" + err.Error())
+			continue
 		}
 		if err := os.WriteFile(filepath.Join(rootDir, "skill", skill.Name()), data, 0644); err != nil {
-			return err
+			fmt.Println("提取" + filepath.Join(rootDir, "skill", skill.Name()) + "失败（写入文件出错），原因：" + err.Error())
+			continue
 		}
+		fmt.Println("成功提取" + filepath.Join(rootDir, "skill", skill.Name()))
 	}
 	return nil
 }
