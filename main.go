@@ -15,7 +15,7 @@ import (
 	"github.com/erikgeiser/promptkit/selection"
 )
 
-const APPNAME = "git-msg"
+const appName = "git-msg"
 
 // 当调用 LLM 接口后程序后处理报错时回退
 func afterRemoteCallRollback(msg string) {
