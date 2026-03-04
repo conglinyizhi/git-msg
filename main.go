@@ -8,14 +8,11 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/erikgeiser/promptkit/selection"
-	"github.com/joho/godotenv"
-	"github.com/spf13/pflag"
 )
 
 // 定义结构体来解析 JSON 数据
@@ -43,74 +40,7 @@ type CommandlineConfig struct {
 	git string
 }
 
-// 获取配置文件
-func getConfigValue() (RemoteAPIConfig, error) {
-	errorMessageBuild := func(message string) error {
-		fmt.Println("提示：可以通过 .env 文件填写 API_KEY、BASE_URL、MODEL_NAME 三个参数")
-		return fmt.Errorf("%s", message+"没有填写")
-	}
-	config := RemoteAPIConfig{}
-	err := godotenv.Load()
-	if err != nil {
-		return config, err
-	}
-	config.API_KEY = os.Getenv("API_KEY")
-	if config.API_KEY == "" {
-		return config, errorMessageBuild("API_KEY")
-	}
-	config.BASE_URL = os.Getenv("BASE_URL")
-	if config.BASE_URL == "" {
-		return config, errorMessageBuild("BASE_URL")
-	}
-	config.MODEL_NAME = os.Getenv("MODEL_NAME")
-	if config.MODEL_NAME == "" {
-		return config, errorMessageBuild("MODEL_NAME")
-	}
-	return config, nil
-}
-
-// 获取工作区差异
-func getDiffInDisk(cmd CommandlineConfig) (string, error) {
-	commandObject, err := exec.Command(cmd.git, []string{"diff", "-U10"}...).Output()
-	if err != nil {
-		return "", err
-	}
-	return string(commandObject), nil
-}
-
-// 获取暂存区的差异
-func getDiffInStaged(cmd CommandlineConfig) (string, error) {
-	commandObject, err := exec.Command(cmd.git, []string{"diff", "--staged", "-U10"}...).Output()
-	if err != nil {
-		return "", err
-	}
-	return string(commandObject), nil
-}
-
-// 获取差异，顺序尝试暂存区和工作区
-func getDiff(cmd CommandlineConfig) (string, bool, error) {
-	var isStagedDiff = false
-	// 尝试获取暂存区的差异
-	projectDiff, err := getDiffInStaged(cmd)
-	if err != nil {
-		return "", isStagedDiff, err
-	}
-	isStagedDiff = true
-	if projectDiff == "" {
-		// 如果项目没有差异，尝试获取项目的差异
-		stashDiff, err := getDiffInDisk(cmd)
-		if err != nil {
-			return "", isStagedDiff, err
-		}
-		if stashDiff != "" {
-			projectDiff = stashDiff
-		}
-	}
-	if len(projectDiff) < 1 {
-		return "", isStagedDiff, fmt.Errorf("git diff 没有捕获到有效信息，终止提交远程 API")
-	}
-	return projectDiff, isStagedDiff, nil
-}
+const APPNAME = "git-msg"
 
 // 当调用 LLM 接口后程序后处理报错时回退
 func afterRemoteCallRollback(msg string) {
@@ -237,7 +167,7 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 				return fmt.Errorf("用户选择退出")
 			}
 			if spResult == showGitStatusItem {
-				cmdResult, err := exec.Command(cmd.git, "status", "-sb").Output()
+				cmdResult, err := getStatus(cmd)
 				if err != nil {
 					fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 					return err
@@ -250,7 +180,7 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	}
 
 	if goAdd {
-		stdout, err := exec.Command(cmd.git, []string{"add", "."}...).Output()
+		stdout, err := runGitAdd(cmd)
 		if err != nil {
 			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 			return err
@@ -258,7 +188,7 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 		printCommandOutput(stdout, "add")
 	}
 	if goCommit {
-		stdout, err := exec.Command(cmd.git, []string{"commit", "-m", commitMessage}...).Output()
+		stdout, err := runGitCommit(cmd, commitMessage)
 		if err != nil {
 			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 			return err
@@ -268,21 +198,14 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	return nil
 }
 
-func printCommandOutput(stdout []byte, command string) {
+func printCommandOutput(stdout string, command string) {
 	const printLine = "---"
 	if len(stdout) < 1 {
 		fmt.Println(command + " 执行完成，空输出")
 	} else {
 		fmt.Println(printLine + command + " 输出的内容" + printLine)
-		fmt.Println(string(stdout))
+		fmt.Println(stdout)
 	}
-}
-
-func parseCommandLineExData() CommandlineConfig {
-	cmdConfig := CommandlineConfig{}
-	cmdConfig.git = *pflag.StringP("git", "g", "git", "Git 指令替换，比如某些情况下用于替换为 yadm 等 Git Like 项目")
-	pflag.Parse()
-	return cmdConfig
 }
 
 // 主函数
