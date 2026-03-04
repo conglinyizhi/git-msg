@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/erikgeiser/promptkit/confirmation"
+	"github.com/erikgeiser/promptkit/selection"
 	"github.com/joho/godotenv"
 	"github.com/spf13/pflag"
 )
@@ -205,12 +206,9 @@ func callRemoteURL(diff string, config RemoteAPIConfig) (string, error) {
 }
 
 func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error {
-	askUser := func(title string) *confirmation.Confirmation {
-		return confirmation.New(title, confirmation.Yes)
-	}
 	fmt.Println()
 	// 询问用户是否提交，如果需要，则提交
-	goCommit, err := askUser("一切准备就绪，发起提交吗?").RunPrompt()
+	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
 		return err
@@ -221,11 +219,30 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	// 是否需要添加文件到暂存区
 	var goAdd = false
 	if isNeedAdd {
-		goAdd, err = askUser("检测到暂存区外的文件差异，是否需要添加到暂存区？").RunPrompt()
-		if err != nil {
-			fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
-			return err
+		selectPrompt := selection.New("检测到暂存区外的文件差异，是否需要添加到暂存区？", []string{"Yes", "No", "查看仓库状态"})
+		selectPrompt.PageSize = 3
+		for {
+			spResult, err := selectPrompt.RunPrompt()
+			if err != nil {
+				fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
+				return err
+			}
+			if spResult == "Yes" {
+				goAdd = true
+				break
+			}
+			if spResult == "查看仓库状态" {
+				cmdResult, err := exec.Command(cmd.git, "status").Output()
+				if err != nil {
+					fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
+					return err
+				}
+				fmt.Println("仓库状态如下：")
+				fmt.Println(string(cmdResult))
+				fmt.Println("*咳咳*，所以……")
+			}
 		}
+
 	}
 
 	if goAdd {
