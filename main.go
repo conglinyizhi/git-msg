@@ -251,8 +251,7 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 			return err
 		}
-		fmt.Println("add . 输出的内容")
-		fmt.Println(string(stdout))
+		printCommandOutput(stdout, "add")
 	}
 	if goCommit {
 		stdout, err := exec.Command(cmd.git, []string{"commit", "-m", commitMessage}...).Output()
@@ -260,10 +259,20 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 			fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 			return err
 		}
-		fmt.Println("commit -m ... 输出的内容")
-		fmt.Println(string(stdout))
+		printCommandOutput(stdout, "commit -m")
 	}
 	return nil
+}
+
+func printCommandOutput(stdout []byte, command string) {
+	const printLine = "-----"
+	if len(stdout) < 1 {
+		fmt.Println(printLine + command + "输出的内容" + printLine)
+		fmt.Println(string(stdout))
+		fmt.Println(printLine + command + "指令输出结束" + printLine)
+	} else {
+		fmt.Println(command + "执行完成，空输出")
+	}
 }
 
 func parseCommandLineExData() CommandlineConfig {
