@@ -238,10 +238,15 @@ func callGitCommand(gitCommand, commitMessage string, isNeedAdd bool) error {
 	return nil
 }
 
-// 主函数
-func main() {
+func parseCommandLineExData() string {
 	var gitCommand = pflag.StringP("git", "g", "git", "Git 指令替换，比如某些情况下用于替换为 yadm 等 Git Like 项目")
 	pflag.Parse()
+	return *gitCommand
+}
+
+// 主函数
+func main() {
+	gitCommand := parseCommandLineExData()
 
 	TOKEN, BASE_URL, MODEL_NAME, err := getConfigValue()
 	if err != nil {
@@ -249,7 +254,7 @@ func main() {
 		return
 	}
 
-	diff, isNeedAddCommand, err := getDiff(*gitCommand)
+	diff, isNeedAddCommand, err := getDiff(gitCommand)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取差异信息失败，原因：", err}...)
 		return
@@ -260,7 +265,7 @@ func main() {
 		fmt.Fprintln(os.Stdout, []any{"调用远程大模型失败，原因：", err}...)
 		return
 	}
-	err = callGitCommand(*gitCommand, commitMessage, isNeedAddCommand)
+	err = callGitCommand(gitCommand, commitMessage, isNeedAddCommand)
 	if err != nil {
 		afterRemoteCallRollback(commitMessage)
 	}
