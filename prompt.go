@@ -11,11 +11,16 @@ type & emoji 的关系是这样的：<emoji>test 🔬;style 🎨;chore 🧹;docs
 现在，请严格遵循模板内容完成变化总结，遵循上面提到的 emoji 列表，仅一行：	{{emoji}} <{{type}}>({{范围}}): {{描述}}
 <范例>🔬 test(cli.go): 新增了命令行功能 -t 参数，用于指定具体分类。</范例>`
 
+func genErrorAndUseDefaultPrompt(errMsg string, e error) string {
+	fmt.Fprintln(os.Stdout, []any{errMsg, "失败，使用默认提示词", e}...)
+	return defaultPrompt
+}
+
 // LLM 提示词
 func getPrompt() string {
-	skillBuff, err := os.ReadFile("./clyzhi-git.md")
+	skillBuff, err := os.ReadFile("./skills/clyzhi-git.md")
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"读取文件失败，使用默认提示词", err}...)
+		genErrorAndUseDefaultPrompt("读取文件", err)
 		return defaultPrompt
 	}
 	return string(skillBuff)
