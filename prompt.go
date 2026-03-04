@@ -34,26 +34,30 @@ func getPrompt() string {
 			skillFileName = append(skillFileName, file.Name())
 		}
 	}
-	var skillBuff []byte
+	var skillFileBody string
 	skillFileLength := len(skillFile)
 	switch skillFileLength {
 	case 0:
 		return genErrorAndUseDefaultPrompt("查找有效 skill 文件", nil)
 	case 1:
-		skillBuff, err = os.ReadFile(filepath.Join("./skills", skillFileName[0]))
+		skillFileBody, err = readfileToString(filepath.Join("./skills", skillFileName[0]))
 		if err != nil {
-			genErrorAndUseDefaultPrompt("读取文件", err)
-			return defaultPrompt
+			return genErrorAndUseDefaultPrompt("读取文件", err)
 		}
-		return string(skillBuff)
+		return skillFileBody
 	}
 	sp := selection.New("请选择要执行的 System Prompt", skillFileName)
 	sp.PageSize = 10
 	spResult, err := sp.RunPrompt()
 	fullPath := filepath.Join("./skills", spResult)
-	skillBuff, err = os.ReadFile(fullPath)
+	skillFileBody, err = readfileToString(fullPath)
 	if err != nil {
 		return genErrorAndUseDefaultPrompt("读取"+fullPath+"文件", err)
 	}
-	return string(skillBuff)
+	return skillFileBody
+}
+
+func readfileToString(filename string) (string, error) {
+	result, err := os.ReadFile(filename)
+	return string(result), err
 }
