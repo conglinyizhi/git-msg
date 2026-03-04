@@ -32,7 +32,7 @@ func getDiff(cmd CommandlineConfig) (string, bool, error) {
 
 // 获取工作区差异
 func getDiffInDisk(cmd CommandlineConfig) (string, error) {
-	commandObject, err := exec.Command(cmd.git, []string{"diff", "-U10"}...).Output()
+	commandObject, err := exec.Command(cmd.git, "diff", "-U10").Output()
 	if err != nil {
 		return "", err
 	}
@@ -41,7 +41,7 @@ func getDiffInDisk(cmd CommandlineConfig) (string, error) {
 
 // 获取暂存区的差异
 func getDiffInStaged(cmd CommandlineConfig) (string, error) {
-	commandObject, err := exec.Command(cmd.git, []string{"diff", "--staged", "-U10"}...).Output()
+	commandObject, err := exec.Command(cmd.git, "diff", "--staged", "-U10").Output()
 	if err != nil {
 		return "", err
 	}
@@ -50,7 +50,7 @@ func getDiffInStaged(cmd CommandlineConfig) (string, error) {
 
 // 获取仓库当前状态
 func getStatus(cmd CommandlineConfig) (string, error) {
-	commandObject, err := exec.Command(cmd.git, []string{"status", "-sb"}...).Output()
+	commandObject, err := exec.Command(cmd.git, "status", "-sb").Output()
 	if err != nil {
 		return "", err
 	}
@@ -59,7 +59,7 @@ func getStatus(cmd CommandlineConfig) (string, error) {
 
 // 将当前路径添加到 git 仓库
 func runGitAdd(cmd CommandlineConfig) (string, error) {
-	commandObject, err := exec.Command(cmd.git, []string{"add", "."}...).Output()
+	commandObject, err := exec.Command(cmd.git, "add", ".").Output()
 	if err != nil {
 		return "", err
 	}
@@ -68,7 +68,7 @@ func runGitAdd(cmd CommandlineConfig) (string, error) {
 
 // 发起提交并携带对应的信息
 func runGitCommit(cmd CommandlineConfig, msg string) (string, error) {
-	commandObject, err := exec.Command(cmd.git, []string{"commit", "-m", msg}...).Output()
+	commandObject, err := exec.Command(cmd.git, "commit", "-m", msg).Output()
 	if err != nil {
 		return "", err
 	}
