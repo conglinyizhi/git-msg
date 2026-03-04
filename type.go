@@ -22,5 +22,6 @@ type RemoteAPIConfig struct {
 }
 
 type CommandlineConfig struct {
-	git string
+	git  string
+	init bool
 }

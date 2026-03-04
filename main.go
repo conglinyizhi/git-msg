@@ -176,7 +176,16 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 // 主函数
 func main() {
 	cmdConfig := parseCommandLineExData()
-
+	if cmdConfig.init {
+		rootDir, err := getConfigRootDir("")
+		if err != nil {
+			fmt.Fprintln(os.Stdout, []any{"定位配置目录失败：", err}...)
+			os.Exit(1)
+		}
+		initConfigDir(rootDir)
+		initSkillDir(rootDir)
+		os.Exit(0)
+	}
 	config, err := getConfigValue()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型配置信息失败：", err}...)
@@ -200,4 +209,11 @@ func main() {
 		afterRemoteCallRollback(commitMessage)
 		os.Exit(1)
 	}
+}
+
+func initConfigDir(rootDir string) error {
+	return os.MkdirAll(filepath.Join(rootDir), 0644)
+}
+func initSkillDir(rootDir string) error {
+	return os.MkdirAll(filepath.Join(rootDir, "skill"), 0644)
 }
