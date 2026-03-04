@@ -196,7 +196,7 @@ func main() {
 	}
 	err = callcmd(cmdConfig, commitMessage, isNeedAddCommand)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"运行指令的过程中出现错误，详情：\n", err})
+		fmt.Fprintln(os.Stdout, []any{"运行指令的过程中出现错误，详情：", err}...)
 		afterRemoteCallRollback(commitMessage)
 		os.Exit(1)
 	}
