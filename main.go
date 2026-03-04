@@ -280,22 +280,23 @@ func main() {
 	config, err := getConfigValue()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型配置信息失败：", err}...)
-		return
+		os.Exit(1)
 	}
 
 	diff, isNeedAddCommand, err := getDiff(cmdConfig)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取差异信息失败，原因：", err}...)
-		return
+		os.Exit(1)
 	}
 
 	commitMessage, err := callRemoteURL(diff, config)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"调用远程大模型失败，原因：", err}...)
-		return
+		os.Exit(1)
 	}
 	err = callcmd(cmdConfig, commitMessage, isNeedAddCommand)
 	if err != nil {
 		afterRemoteCallRollback(commitMessage)
+		os.Exit(1)
 	}
 }
