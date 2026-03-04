@@ -77,9 +77,3 @@ func getSkillFileList(pathFileList []os.DirEntry) ([]os.DirEntry, []string) {
 	}
 	return skillFile, skillFileName
 }
-
-// 读取文件 - 直接读取为文字
-func readfileToString(filename string) (string, error) {
-	result, err := os.ReadFile(filename)
-	return string(result), err
-}

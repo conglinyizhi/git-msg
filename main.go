@@ -173,16 +173,6 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	return nil
 }
 
-func printCommandOutput(stdout string, command string) {
-	const printLine = "---"
-	if len(stdout) < 1 {
-		fmt.Println(command + " 执行完成，空输出")
-	} else {
-		fmt.Println(printLine + command + " 输出的内容" + printLine)
-		fmt.Println(stdout)
-	}
-}
-
 // 主函数
 func main() {
 	cmdConfig := parseCommandLineExData()
