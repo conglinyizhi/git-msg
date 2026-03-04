@@ -4,9 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/user"
 	"path/filepath"
-	"runtime"
 	"syscall"
 
 	"github.com/joho/godotenv"
@@ -18,30 +16,10 @@ func errorMessageBuild(message string) error {
 	return fmt.Errorf("%s", message+"没有填写")
 }
 
-// 获取系统规范的软件配置目录
-func getSystemSoftwareConfigRootDir(fp string) (string, error) {
-	usr, err := user.Current()
-	if err != nil {
-		return "", err
-	}
-	switch runtime.GOOS {
-	case "windows":
-		localAppData := os.Getenv("LOCALAPPDATA")
-		if localAppData == "" {
-			localAppData = filepath.Join(usr.HomeDir, "AppData", "Local")
-		}
-		return filepath.Join(localAppData, appName, "Config", fp), nil
-	case "darwin":
-		return filepath.Join(usr.HomeDir, "Library", "Preferences", appName, fp), nil
-	}
-	// Linux 和其他系统
-	return filepath.Join(usr.HomeDir, ".config", appName, fp), nil
-}
-
 // 获取配置文件 - toml
 func getConfigValue() (RemoteAPIConfig, error) {
 	config := RemoteAPIConfig{}
-	configPath, err := getSystemSoftwareConfigRootDir("llm.toml")
+	configPath, err := getConfigRootDir("llm.toml")
 	if err != nil {
 		return config, fmt.Errorf("定位配置文件路径错误:%w", err)
 	}
@@ -67,7 +45,7 @@ func initNewTomlFile(err error, config RemoteAPIConfig) error {
 	if !errors.Is(err, syscall.ENOENT) {
 		return nil
 	}
-	configRootDir, err := getSystemSoftwareConfigRootDir("")
+	configRootDir, err := getConfigRootDir("")
 	if err != nil {
 		return fmt.Errorf("定位配置文件路径错误:%w", err)
 	}

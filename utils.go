@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/user"
+	"path/filepath"
+	"runtime"
 )
 
 // readfileToString 读取文件内容并返回字符串
@@ -20,4 +23,24 @@ func printCommandOutput(stdout string, command string) {
 		fmt.Println(printLine + command + " 输出的内容" + printLine)
 		fmt.Println(stdout)
 	}
+}
+
+// getConfigRootDir 获取系统规范的软件配置目录
+func getConfigRootDir(fp string) (string, error) {
+	usr, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	switch runtime.GOOS {
+	case "windows":
+		localAppData := os.Getenv("LOCALAPPDATA")
+		if localAppData == "" {
+			localAppData = filepath.Join(usr.HomeDir, "AppData", "Local")
+		}
+		return filepath.Join(localAppData, appName, "Config", fp), nil
+	case "darwin":
+		return filepath.Join(usr.HomeDir, "Library", "Preferences", appName, fp), nil
+	}
+	// Linux 和其他系统
+	return filepath.Join(usr.HomeDir, ".config", appName, fp), nil
 }
