@@ -140,6 +140,10 @@ commit -m 输出的内容
 
 MIT License
 
----
+## 致谢
 
-**提示**：如果遇到问题，可以通过 `.env` 文件设置环境变量，或检查配置文件路径是否正确。
+本工具使用了以下优秀的开源库：
+
+- [go-toml](https://github.com/pelletier/go-toml) (MIT)
+- [pflag](https://github.com/spf13/pflag) (BSD-3)
+- [promptkit](https://github.com/erikgeiser/promptkit) (MIT)
