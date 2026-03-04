@@ -3,7 +3,7 @@ name: clyzhi-git
 description: Git Commit Message Specification (Lightweight Modification Based on Conventional Commits)
 metadata:
   author: conglinyizhi
-  version: 2.0.0
+  version: 2.0.1
   created: 2026-02-13
   updated: 2026-02-13
 ---
@@ -39,7 +39,7 @@ The type must use the categories mentioned in the specification. Commonly used t
 
 ### Subject
 
-- Use Chinese for descriptions
+- Use English for descriptions
 - Keep it concise and clear, no more than 50 characters
 - Do not end with a period
 - Use imperative mood
