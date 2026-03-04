@@ -202,11 +202,12 @@ func callRemoteURL(diff string, config RemoteAPIConfig) (string, error) {
 			commitMessage.WriteString(content)
 		}
 	}
+	// 打印一个空行，避免大模型输出之后和后续内容写在一行内
+	fmt.Println()
 	return commitMessage.String(), nil
 }
 
 func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error {
-	fmt.Println()
 	// 询问用户是否提交，如果需要，则提交
 	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
 	if err != nil {
