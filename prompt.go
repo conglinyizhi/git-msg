@@ -22,13 +22,13 @@ func genErrorAndUseDefaultPrompt(errMsg string, e error) string {
 
 // LLM 提示词
 func getPromptMain() string {
-	skillDir, err := getConfigRootDir("./skills")
+	skillDir, err := getConfigRootDir("./skill")
 	if err != nil {
-		return genErrorAndUseDefaultPrompt("定位 skills 目录", err)
+		return genErrorAndUseDefaultPrompt("定位 skill 目录", err)
 	}
 	pathFileList, err := os.ReadDir(skillDir)
 	if err != nil {
-		return genErrorAndUseDefaultPrompt("访问 skills 目录", err)
+		return genErrorAndUseDefaultPrompt("访问 skill 目录", err)
 	}
 	skillFile, skillFileName := getSkillFileList(pathFileList)
 	var skillFileBody string
@@ -51,9 +51,9 @@ func getPromptMain() string {
 }
 
 func tryReadSkillFile(skillFileName []string) string {
-	skillDir, err := getConfigRootDir("./skills")
+	skillDir, err := getConfigRootDir("./skill")
 	if err != nil {
-		return genErrorAndUseDefaultPrompt("定位 skills 目录", err)
+		return genErrorAndUseDefaultPrompt("定位 skill 目录", err)
 	}
 	oneFileName := skillFileName[0]
 	skillFileBody, err := readfileToString(filepath.Join(skillDir, oneFileName))
@@ -63,7 +63,7 @@ func tryReadSkillFile(skillFileName []string) string {
 	return skillFileBody
 }
 
-// 获取所有的技能(skills)文件
+// 获取所有的技能(skill)文件
 func getSkillFileList(pathFileList []os.DirEntry) ([]os.DirEntry, []string) {
 	isMarkdownByFileExt := func(file os.DirEntry) bool {
 		fileName := file.Name()
