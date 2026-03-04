@@ -1,5 +1,7 @@
 # git-msg
 
+[English](README.md) | [简体中文](README.zh_cn.md)
+
 `git-msg` 是一个 Git 辅助工具
 
 当前的主要功能是通过分析当前仓库的差异（diff），调用大模型 API 自动生成符合[约定式提交](https://www.conventionalcommits.org/)规范的提交信息，并附带适当的 emoji。它支持交互式确认、暂存区管理，以及自定义提示词模板。
