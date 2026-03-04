@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"syscall"
 
+	"github.com/joho/godotenv"
 	"github.com/pelletier/go-toml/v2"
 )
 
@@ -90,6 +91,9 @@ func initNewTomlFile(err error, config RemoteAPIConfig) error {
 // 回退 - 使用系统变量
 func tryReadEnv() (RemoteAPIConfig, error) {
 	config := RemoteAPIConfig{}
+	if err := godotenv.Load(); err != nil {
+		return config, err
+	}
 	config.API_KEY = os.Getenv("API_KEY")
 	config.MODEL_NAME = os.Getenv("MODEL_NAME")
 	config.BASE_URL = os.Getenv("BASE_URL")
