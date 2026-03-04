@@ -46,7 +46,7 @@ func getConfigValue() (RemoteAPIConfig, error) {
 	}
 	tomlConfigBody, err := os.ReadFile(configPath)
 	if err != nil {
-		fmt.Printf("未能成功读取预期在 " + configPath + " 的配置文件，尝试读取环境变量……")
+		fmt.Println("未能成功读取预期在 " + configPath + " 的配置文件，尝试读取环境变量……")
 		initNewTomlFile(err, config)
 		return tryReadEnv()
 	}
