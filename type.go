@@ -4,7 +4,7 @@ package main
 type Event struct {
 	ID         string `json:"id"`
 	Created    int64  `json:"created"`
-	MODEL_NAME string `json:"MODEL_NAME"`
+	MODEL_NAME string `json:"model"`
 	Choices    []struct {
 		Index        int    `json:"index"`
 		FinishReason string `json:"finish_reason"`
