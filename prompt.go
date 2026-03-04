@@ -26,14 +26,7 @@ func getPromptMain() string {
 	if err != nil {
 		return genErrorAndUseDefaultPrompt("访问 skills 目录", err)
 	}
-	skillFile := []os.DirEntry{}
-	skillFileName := []string{}
-	for _, file := range pathFileList {
-		if strings.Split(file.Name(), ".")[1] == "md" {
-			skillFile = append(skillFile, file)
-			skillFileName = append(skillFileName, file.Name())
-		}
-	}
+	skillFile, skillFileName := getSkillFileList(pathFileList)
 	var skillFileBody string
 	skillFileLength := len(skillFile)
 	switch skillFileLength {
@@ -55,6 +48,19 @@ func getPromptMain() string {
 		return genErrorAndUseDefaultPrompt("读取"+fullPath+"文件", err)
 	}
 	return skillFileBody
+}
+
+// 获取所有的技能(skills)文件
+func getSkillFileList(pathFileList []os.DirEntry) ([]os.DirEntry, []string) {
+	skillFile := []os.DirEntry{}
+	skillFileName := []string{}
+	for _, file := range pathFileList {
+		if strings.Split(file.Name(), ".")[1] == "md" {
+			skillFile = append(skillFile, file)
+			skillFileName = append(skillFileName, file.Name())
+		}
+	}
+	return skillFile, skillFileName
 }
 
 // 读取文件 - 直接读取为文字
