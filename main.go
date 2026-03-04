@@ -19,7 +19,7 @@ const appName = "git-msg"
 
 // 当调用 LLM 接口后程序后处理报错时回退
 func afterRemoteCallRollback(msg string) {
-	tmpFilePath := filepath.Join(os.TempDir(), "git-commit-lastet.txt")
+	tmpFilePath := filepath.Join(os.TempDir(), "git-commit-latest.txt")
 	err := os.WriteFile(tmpFilePath, []byte(msg), 0666)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"[回退]失败，原因：", err}...)
