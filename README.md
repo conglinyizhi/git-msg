@@ -14,7 +14,7 @@ According to the library's documentation, the interactive interface may have iss
 - Calls a large model (compatible with OpenAI API format) to generate commit messages.
 - Generated commit message format: `<emoji> <type>(<scope>): <description>` (e.g., `🔬 test(cli.go): add new command line feature -t`).
 - Interactively asks whether to add unstaged files and whether to commit.
-- Supports custom prompts (via Markdown files in the `skills/` directory).
+- Supports custom prompts (via Markdown files in the `skill/` directory).
 - Can specify a custom Git command (e.g., `yadm`).
 
 ## 📦 Installation
@@ -96,12 +96,12 @@ git-msg -g yadm
 
 ## 🧠 Custom Prompts
 
-The tool uses Markdown files in the `skills/` directory as system prompts. You can place multiple `.md` files; during runtime, you will be prompted to select one. If only one file exists, it will be used automatically.
+The tool uses Markdown files in the `skill/` directory as system prompts. You can place multiple `.md` files; during runtime, you will be prompted to select one. If only one file exists, it will be used automatically.
 
 Example directory structure:
 
 ```
-./skills/
+./skill/
   ├── default.md
   ├── detailed.md
   └── emoji-only.md

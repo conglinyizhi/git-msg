@@ -14,7 +14,7 @@
 - 调用大模型（兼容 OpenAI API 格式）生成提交信息
 - 生成的提交信息格式：`<emoji> <type>(<scope>): <description>`（例如 `🔬 test(cli.go): 新增了命令行功能 -t 参数`）
 - 交互式询问是否添加未暂存文件、是否提交
-- 支持自定义提示词（通过 `skills/` 目录下的 Markdown 文件）
+- 支持自定义提示词（通过 `skill/` 目录下的 Markdown 文件）
 - 可指定自定义 Git 命令（如 `yadm`）
 
 ## 📦 安装
@@ -96,12 +96,12 @@ git-msg -g yadm
 
 ## 🧠 自定义提示词
 
-工具使用 `skills/` 目录下的 Markdown 文件作为 system prompt。你可以放置多个 `.md` 文件，运行时将让你选择使用哪一个。如果只有一个文件，则自动使用。
+工具使用 `skill/` 目录下的 Markdown 文件作为 system prompt。你可以放置多个 `.md` 文件，运行时将让你选择使用哪一个。如果只有一个文件，则自动使用。
 
 目录结构示例：
 
 ```
-./skills/
+./skill/
   ├── default.md
   ├── detailed.md
   └── emoji-only.md
