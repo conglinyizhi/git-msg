@@ -265,13 +265,12 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 }
 
 func printCommandOutput(stdout []byte, command string) {
-	const printLine = "-----"
+	const printLine = "---"
 	if len(stdout) < 1 {
-		fmt.Println(command + "执行完成，空输出")
+		fmt.Println(command + " 执行完成，空输出")
 	} else {
-		fmt.Println(printLine + command + "输出的内容" + printLine)
+		fmt.Println(printLine + command + " 输出的内容" + printLine)
 		fmt.Println(string(stdout))
-		fmt.Println(printLine + command + "指令输出结束" + printLine)
 	}
 }
 
