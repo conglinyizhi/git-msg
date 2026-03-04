@@ -2,7 +2,7 @@
 name: clyzhi-git
 description: Git 提交信息规范（基于约定式提交轻量化修改）
 metadata:
-  author: clyzhi
+  author: conglinyizhi
   version: 2.0.0
   created: 2026-02-13
   updated: 2026-02-13
