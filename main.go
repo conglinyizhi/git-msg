@@ -167,7 +167,6 @@ func callRemoteURL(diff string, config RemoteAPIConfig) (string, error) {
 	}
 	defer resp.Body.Close()
 	var commitMessage strings.Builder
-	fmt.Println("接口返回状态：", resp.StatusCode)
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
 		line := scanner.Text()
