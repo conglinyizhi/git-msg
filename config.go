@@ -25,11 +25,11 @@ func getSystemSoftwareConfigRootDir(fp string) (string, error) {
 	}
 	switch runtime.GOOS {
 	case "windows":
-		if shadowHome := os.Getenv("LOCALAPPDATA"); len(shadowHome) < 1 {
-			return filepath.Join(usr.HomeDir, appName, "Config", fp), nil
-		} else {
-			return filepath.Join(shadowHome, appName, "Config", fp), nil
+		localAppData := os.Getenv("LOCALAPPDATA")
+		if localAppData == "" {
+			localAppData = filepath.Join(usr.HomeDir, "AppData", "Local")
 		}
+		return filepath.Join(localAppData, appName, "Config", fp), nil
 	case "darwin":
 		return filepath.Join(usr.HomeDir, "Library", "Preferences", appName, fp), nil
 	}
