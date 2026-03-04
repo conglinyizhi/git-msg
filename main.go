@@ -128,7 +128,7 @@ func callRemoteURL(diff string, config RemoteAPIConfig) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("请求构建失败，详情：%w", err)
 	}
-	prompt := getPrompt()
+	prompt := getPromptMain()
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+config.API_KEY)

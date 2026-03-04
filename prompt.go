@@ -21,7 +21,7 @@ func genErrorAndUseDefaultPrompt(errMsg string, e error) string {
 }
 
 // LLM 提示词
-func getPrompt() string {
+func getPromptMain() string {
 	pathFileList, err := os.ReadDir("./skills/")
 	if err != nil {
 		return genErrorAndUseDefaultPrompt("访问 skills 目录", err)
