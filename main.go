@@ -219,9 +219,11 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	}
 	// 是否需要添加文件到暂存区
 	var goAdd = false
+	const showGitStatusItem = "查看仓库状态"
+	const exitSelectPromptItem = "退出"
 	if isNeedAdd {
-		selectPrompt := selection.New("检测到暂存区外的文件差异，是否需要添加到暂存区？", []string{"Yes", "No", "查看仓库状态"})
-		selectPrompt.PageSize = 3
+		selectPrompt := selection.New("检测到暂存区外的文件差异，是否需要添加到暂存区？", []string{"Yes", "No", showGitStatusItem, exitSelectPromptItem})
+		selectPrompt.PageSize = 2
 		for {
 			spResult, err := selectPrompt.RunPrompt()
 			if err != nil {
@@ -232,14 +234,16 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 				goAdd = true
 				break
 			}
-			if spResult == "查看仓库状态" {
-				cmdResult, err := exec.Command(cmd.git, "status").Output()
+			if spResult == exitSelectPromptItem {
+				return fmt.Errorf("用户选择退出")
+			}
+			if spResult == showGitStatusItem {
+				cmdResult, err := exec.Command(cmd.git, "status", "-sb").Output()
 				if err != nil {
 					fmt.Fprintln(os.Stdout, []any{"执行命令失败，原因：", err}...)
 					return err
 				}
-				fmt.Println("仓库状态如下：")
-				fmt.Println(string(cmdResult))
+				printCommandOutput(cmdResult, "status -sb")
 				fmt.Println("*咳咳*，所以……")
 			}
 		}
