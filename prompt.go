@@ -22,7 +22,11 @@ func genErrorAndUseDefaultPrompt(errMsg string, e error) string {
 
 // LLM 提示词
 func getPromptMain() string {
-	pathFileList, err := os.ReadDir("./skills/")
+	skillDir, err := getConfigRootDir("./skills")
+	if err != nil {
+		return genErrorAndUseDefaultPrompt("定位 skills 目录", err)
+	}
+	pathFileList, err := os.ReadDir(skillDir)
 	if err != nil {
 		return genErrorAndUseDefaultPrompt("访问 skills 目录", err)
 	}
@@ -38,7 +42,7 @@ func getPromptMain() string {
 	sp := selection.New("请选择要执行的 System Prompt", skillFileName)
 	sp.PageSize = 10
 	spResult, err := sp.RunPrompt()
-	fullPath := filepath.Join("./skills", spResult)
+	fullPath := filepath.Join(skillDir, spResult)
 	skillFileBody, err = readfileToString(fullPath)
 	if err != nil {
 		return genErrorAndUseDefaultPrompt("读取"+fullPath+"文件", err)
@@ -47,8 +51,12 @@ func getPromptMain() string {
 }
 
 func tryReadSkillFile(skillFileName []string) string {
+	skillDir, err := getConfigRootDir("./skills")
+	if err != nil {
+		return genErrorAndUseDefaultPrompt("定位 skills 目录", err)
+	}
 	oneFileName := skillFileName[0]
-	skillFileBody, err := readfileToString(filepath.Join("./skills", oneFileName))
+	skillFileBody, err := readfileToString(filepath.Join(skillDir, oneFileName))
 	if err != nil {
 		return genErrorAndUseDefaultPrompt("读取文件", err)
 	}
