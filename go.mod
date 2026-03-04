@@ -2,11 +2,9 @@ module gitmsg
 
 go 1.23.4
 
-require github.com/joho/godotenv v1.5.1
-
 require github.com/erikgeiser/promptkit v0.9.0
 
-require github.com/pelletier/go-toml/v2 v2.2.4 // indirect
+require github.com/pelletier/go-toml/v2 v2.2.4
 
 require (
 	github.com/atotto/clipboard v0.1.4 // indirect
