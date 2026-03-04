@@ -231,6 +231,9 @@ func initSkillDir(rootDir string) error {
 		return err
 	}
 	for _, skill := range skillFiles {
+		if skill.IsDir() {
+			continue
+		}
 		data, err := skillFilesEmbed.ReadFile(filepath.Join("skill", skill.Name()))
 		if err != nil {
 			return err
