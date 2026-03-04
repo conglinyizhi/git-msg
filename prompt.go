@@ -57,10 +57,20 @@ func tryReadSkillFile(skillFileName []string) string {
 
 // 获取所有的技能(skills)文件
 func getSkillFileList(pathFileList []os.DirEntry) ([]os.DirEntry, []string) {
+	isMarkdownByFileExt := func(file os.DirEntry) bool {
+		fileName := file.Name()
+		nameArraySplitDot := strings.Split(fileName, ".")
+		splitDotLength := len(nameArraySplitDot)
+		if splitDotLength < 2 {
+			return false
+		}
+		lastNameSplit := strings.ToLower(nameArraySplitDot[len(nameArraySplitDot)-1])
+		return strings.HasPrefix(lastNameSplit, "md")
+	}
 	skillFile := []os.DirEntry{}
 	skillFileName := []string{}
 	for _, file := range pathFileList {
-		if strings.Split(file.Name(), ".")[1] == "md" {
+		if isMarkdownByFileExt(file) {
 			skillFile = append(skillFile, file)
 			skillFileName = append(skillFileName, file.Name())
 		}
