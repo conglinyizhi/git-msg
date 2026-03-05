@@ -29,24 +29,23 @@ func afterRemoteCallRollback(msg string) {
 	println("[回退]大模型输出结果将保存到", tmpFilePath)
 }
 
-func callRemoteURL(diff string, config RemoteAPIConfig) (string, error) {
+func sendReqCore(sys, user string, config RemoteAPIConfig) (string, error) {
 	req, err := http.NewRequest("POST", config.BASE_URL, nil)
 	if err != nil {
 		return "", fmt.Errorf("请求构建失败，详情：%w", err)
 	}
-	prompt := getPromptMain()
 
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+config.API_KEY)
-	jsonObjectMap := map[string]interface{}{
+	jsonObjectMap := map[string]any{
 		"model": config.MODEL_NAME,
 		"messages": []map[string]string{
 			{
 				"role":    "system",
-				"content": prompt,
+				"content": sys,
 			}, {
 				"role":    "user",
-				"content": diff,
+				"content": user,
 			},
 		},
 		"type":   "text",
@@ -110,6 +109,11 @@ func callRemoteURL(diff string, config RemoteAPIConfig) (string, error) {
 	// 打印一个空行，避免大模型输出之后和后续内容写在一行内
 	fmt.Println()
 	return commitMessage.String(), nil
+}
+
+func sendDiffReq(diff string, cfg RemoteAPIConfig) (string, error) {
+	prompt := getPromptMain()
+	return sendReqCore(prompt, diff, cfg)
 }
 
 func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error {
@@ -203,7 +207,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	commitMessage, err := callRemoteURL(diff, config)
+	commitMessage, err := sendDiffReq(diff, config)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"调用远程大模型失败，原因：", err}...)
 		os.Exit(1)
