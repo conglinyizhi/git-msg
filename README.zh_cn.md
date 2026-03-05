@@ -24,7 +24,7 @@
 确保已安装 Go 1.18+，然后执行：
 
 ```bash
-git clone https://github.com/yourusername/git-msg.git
+git clone https://github.com/conglinyizhi/git-msg.git
 cd git-msg
 go build -o git-msg
 ```
@@ -109,31 +109,6 @@ git-msg --init
 ```
 
 每个文件应包含 system prompt 内容。默认 prompt 见代码中的 `defaultPrompt` 常量。
-
-## 📝 示例
-
-假设你在某个 Git 仓库修改了 `cli.go` 并添加了测试，运行 `git-msg`：
-
-```bash
-$ git-msg
-获取差异信息...
-调用远程大模型...
-🔬 test(cli.go): 新增了命令行功能 -t 参数，用于指定具体分类。
-
-检测到暂存区外的文件差异，是否需要添加到暂存区？
-> Yes
-  No
-  查看仓库状态
-  退出
-
-选择 Yes 后：
-add 执行完成，空输出
-一切准备就绪，发起提交吗? [Y/n] y
-commit -m 输出的内容
----
-[main 1a2b3c4] 🔬 test(cli.go): 新增了命令行功能 -t 参数，用于指定具体分类。
- 1 file changed, 10 insertions(+)
-```
 
 ## 🤝 贡献
 

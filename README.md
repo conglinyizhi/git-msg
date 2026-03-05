@@ -110,31 +110,6 @@ Example directory structure:
 
 Each file should contain the system prompt content. The default prompt can be found in the `defaultPrompt` constant in the code.
 
-## 📝 Example
-
-Assume you have modified `cli.go` in a Git repository and added tests. Running `git-msg`:
-
-```bash
-$ git-msg
-Retrieving diff information...
-Calling remote large model...
-🔬 test(cli.go): add new command line feature -t to specify a category.
-
-Detected differences outside the staging area. Do you want to add them to the staging area?
-> Yes
-  No
-  View repository status
-  Exit
-
-After selecting Yes:
-add executed successfully, no output.
-Everything is ready. Proceed with commit? [Y/n] y
-commit -m the generated message
----
-[main 1a2b3c4] 🔬 test(cli.go): add new command line feature -t to specify a category.
- 1 file changed, 10 insertions(+)
-```
-
 ## 🤝 Contributing
 
 Issues and Pull Requests are welcome. Please ensure code style is consistent and tests pass.
