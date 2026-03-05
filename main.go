@@ -187,6 +187,10 @@ func main() {
 		initSkillDir(rootDir)
 		os.Exit(0)
 	}
+	if cmdConfig.ping {
+		// Call API
+		os.Exit(0)
+	}
 	config, err := getConfigValue()
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型配置信息失败：", err}...)
