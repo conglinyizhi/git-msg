@@ -23,7 +23,7 @@ func afterRemoteCallRollback(msg string) {
 	tmpFilePath := filepath.Join(os.TempDir(), "git-commit-latest.txt")
 	err := os.WriteFile(tmpFilePath, []byte(msg), 0666)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"[回退]失败，原因：", err}...)
+		fmt.Fprintln(os.Stdout, "[回退]失败，原因：", err)
 		return
 	}
 	println("[回退]大模型输出结果将保存到", tmpFilePath)
@@ -120,7 +120,7 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	// 询问用户是否提交，如果需要，则提交
 	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
+		fmt.Fprintln(os.Stdout, "交互命令出现异常：", err)
 		return err
 	}
 	if !goCommit {
@@ -136,7 +136,7 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 		for {
 			spResult, err := selectPrompt.RunPrompt()
 			if err != nil {
-				fmt.Fprintln(os.Stdout, []any{"交互命令出现异常：", err}...)
+				fmt.Fprintln(os.Stdout, "交互命令出现异常：", err)
 				return err
 			}
 			if spResult == "Yes" {
@@ -149,7 +149,7 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 			if spResult == showGitStatusItem {
 				cmdResult, err := getStatus(cmd)
 				if err != nil {
-					fmt.Fprintln(os.Stdout, []any{"执行命令 status 失败，原因：", err}...)
+					fmt.Fprintln(os.Stdout, "执行命令 status 失败，原因：", err)
 					return err
 				}
 				printCommandOutput(cmdResult, "status -sb")
@@ -162,7 +162,7 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	if goAdd {
 		stdout, err := runGitAdd(cmd)
 		if err != nil {
-			fmt.Fprintln(os.Stdout, []any{"执行命令 add 失败，原因：", err}...)
+			fmt.Fprintln(os.Stdout, "执行命令 add 失败，原因：", err)
 			return err
 		}
 		printCommandOutput(stdout, "add")
@@ -170,7 +170,7 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	if goCommit {
 		stdout, err := runGitCommit(cmd, commitMessage)
 		if err != nil {
-			fmt.Fprintln(os.Stdout, []any{"执行命令 commit 失败，原因：", err}...)
+			fmt.Fprintln(os.Stdout, "执行命令 commit 失败，原因：", err)
 			return err
 		}
 		printCommandOutput(stdout, "commit -m")
@@ -184,7 +184,7 @@ func main() {
 	if cmdConfig.init {
 		rootDir, err := getConfigRootDir("")
 		if err != nil {
-			fmt.Fprintln(os.Stdout, []any{"定位配置目录失败：", err}...)
+			fmt.Fprintln(os.Stdout, "定位配置目录失败：", err)
 			os.Exit(1)
 		}
 		initConfigDir(rootDir)
@@ -202,24 +202,24 @@ func main() {
 		}
 	}
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"获取大模型配置信息失败：", err}...)
+		fmt.Fprintln(os.Stdout, "获取大模型配置信息失败：", err)
 		os.Exit(1)
 	}
 
 	diff, isNeedAddCommand, err := getDiff(cmdConfig)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"获取差异信息失败，原因：", err}...)
+		fmt.Fprintln(os.Stdout, "获取差异信息失败，原因：", err)
 		os.Exit(1)
 	}
 
 	commitMessage, err := sendDiffReq(diff, config)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"调用远程大模型失败，原因：", err}...)
+		fmt.Fprintln(os.Stdout, "调用远程大模型失败，原因：", err)
 		os.Exit(1)
 	}
 	err = callcmd(cmdConfig, commitMessage, isNeedAddCommand)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, []any{"运行指令的过程中出现错误，详情：", err}...)
+		fmt.Fprintln(os.Stdout, "运行指令的过程中出现错误，详情：", err)
 		afterRemoteCallRollback(commitMessage)
 		os.Exit(1)
 	}

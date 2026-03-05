@@ -16,7 +16,7 @@ type & emoji 的关系是这样的：<emoji>test 🔬;style 🎨;chore 🧹;docs
 <范例>🔬 test(cli.go): 新增了命令行功能 -t 参数，用于指定具体分类。</范例>`
 
 func genErrorAndUseDefaultPrompt(errMsg string, e error) string {
-	fmt.Fprintln(os.Stdout, []any{errMsg, "失败，使用默认提示词", e}...)
+	fmt.Fprintln(os.Stdout, errMsg, "失败，使用默认提示词", e)
 	return defaultPrompt
 }
 
