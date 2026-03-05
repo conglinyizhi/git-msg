@@ -191,11 +191,16 @@ func main() {
 		initSkillDir(rootDir)
 		os.Exit(0)
 	}
-	if cmdConfig.ping {
-		// Call API
-		os.Exit(0)
-	}
 	config, err := getConfigValue()
+	if cmdConfig.ping {
+		if str, err := sendReqCore("test", "you must replay: OK.(DO NOT MORE TEXT)", config); err != nil {
+			fmt.Fprintln(os.Stdout, "测试失败：", err)
+			os.Exit(1)
+		} else {
+			fmt.Fprintln(os.Stdout, "测试通过，LLM API 回复：", str)
+			os.Exit(0)
+		}
+	}
 	if err != nil {
 		fmt.Fprintln(os.Stdout, []any{"获取大模型配置信息失败：", err}...)
 		os.Exit(1)
