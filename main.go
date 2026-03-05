@@ -182,25 +182,13 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 func main() {
 	cmdConfig := parseCommandLineExData()
 	if cmdConfig.init {
-		rootDir, err := getConfigRootDir("")
-		if err != nil {
-			fmt.Fprintln(os.Stdout, "定位配置目录失败：", err)
-			os.Exit(1)
-		}
-		initConfigDir(rootDir)
-		initSkillDir(rootDir)
-		os.Exit(0)
+		os.Exit(subcommand_Init())
 	}
 	config, err := getConfigValue()
 	if cmdConfig.ping {
-		if str, err := sendReqCore("test", "you must replay: OK.(DO NOT MORE TEXT)", config); err != nil {
-			fmt.Fprintln(os.Stdout, "测试失败：", err)
-			os.Exit(1)
-		} else {
-			fmt.Fprintln(os.Stdout, "测试通过，LLM API 回复：", str)
-			os.Exit(0)
-		}
+		os.Exit(subCommand_Ping(config))
 	}
+
 	if err != nil {
 		fmt.Fprintln(os.Stdout, "获取大模型配置信息失败：", err)
 		os.Exit(1)
@@ -222,6 +210,27 @@ func main() {
 		fmt.Fprintln(os.Stdout, "运行指令的过程中出现错误，详情：", err)
 		afterRemoteCallRollback(commitMessage)
 		os.Exit(1)
+	}
+}
+
+func subcommand_Init() int {
+	rootDir, err := getConfigRootDir("")
+	if err != nil {
+		fmt.Fprintln(os.Stdout, "定位配置目录失败：", err)
+		return 1
+	}
+	initConfigDir(rootDir)
+	initSkillDir(rootDir)
+	return 0
+}
+
+func subCommand_Ping(cfg RemoteAPIConfig) int {
+	if str, err := sendReqCore("test", "you must replay: OK.(DO NOT MORE TEXT)", cfg); err != nil {
+		fmt.Fprintln(os.Stdout, "测试失败：", err)
+		return 1
+	} else {
+		fmt.Fprintln(os.Stdout, "测试通过，LLM API 回复：", str)
+		return 0
 	}
 }
 
