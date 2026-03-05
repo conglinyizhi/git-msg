@@ -87,11 +87,14 @@ The tool will automatically perform the following steps:
 ### Command Line Options
 
 - `-g, --git <command>`: Specify the Git command path or alias (default `git`). Useful for replacing it with other Git-compatible tools like `yadm`.
+- `--init`: Initialize the environment required for the current version of git-msg (creates configuration directories and default files).
+- `--ping`: Test the configured large model API with a minimal prompt to verify connectivity.
 
 Example:
 
 ```bash
 git-msg -g yadm
+git-msg --init
 ```
 
 ## 🧠 Custom Prompts
