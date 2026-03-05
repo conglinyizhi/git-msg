@@ -252,15 +252,16 @@ func initSkillDir(rootDir string) error {
 			continue
 		}
 		data, err := skillFilesEmbed.ReadFile(filepath.Join("skill", skill.Name()))
+		targetSkillFilePath := filepath.Join(rootDir, "skill", skill.Name())
 		if err != nil {
-			fmt.Println("提取" + filepath.Join(rootDir, "skill", skill.Name()) + "失败（读取文件出错），原因：" + err.Error())
+			fmt.Println("提取" + targetSkillFilePath + "失败（读取文件出错），原因：" + err.Error())
 			continue
 		}
-		if err := os.WriteFile(filepath.Join(rootDir, "skill", skill.Name()), data, 0644); err != nil {
-			fmt.Println("提取" + filepath.Join(rootDir, "skill", skill.Name()) + "失败（写入文件出错），原因：" + err.Error())
+		if err := os.WriteFile(targetSkillFilePath, data, 0644); err != nil {
+			fmt.Println("提取" + targetSkillFilePath + "失败（写入文件出错），原因：" + err.Error())
 			continue
 		}
-		fmt.Println("成功提取" + filepath.Join(rootDir, "skill", skill.Name()))
+		fmt.Println("成功提取" + targetSkillFilePath)
 	}
 	return nil
 }
