@@ -31,10 +31,6 @@ go build -o git-msg
 
 将生成的 `git-msg` 二进制文件放到 `PATH` 下，例如 `/usr/local/bin`。
 
-### 直接下载
-
-前往 [Releases](https://github.com/yourusername/git-msg/releases) 页面下载对应平台的预编译二进制文件。
-
 ## ⚙️ 配置
 
 `git-msg` 需要配置大模型的 API 信息。配置方式有两种（按优先级从高到低）：
@@ -44,6 +40,8 @@ go build -o git-msg
    - Linux: `~/.config/git-msg/llm.toml`
    - macOS: `~/Library/Preferences/git-msg/llm.toml`
    - Windows: `%LOCALAPPDATA%\git-msg\Config\llm.toml`
+
+   您也可以使用 `--init` 开关来快速创建配置文件，同时会复制文件内预制的技能到指定的技能目录中。
 
    文件内容示例：
 

@@ -24,16 +24,12 @@ According to the library's documentation, the interactive interface may have iss
 Ensure Go 1.18+ is installed, then execute:
 
 ```bash
-git clone https://github.com/yourusername/git-msg.git
+git clone https://github.com/conglinyizhi/git-msg.git
 cd git-msg
 go build -o git-msg
 ```
 
 Place the generated `git-msg` binary in your `PATH`, e.g., `/usr/local/bin`.
-
-### Download Pre-built Binaries
-
-Visit the [Releases](https://github.com/yourusername/git-msg/releases) page to download a pre-compiled binary for your platform.
 
 ## ⚙️ Configuration
 
@@ -44,6 +40,8 @@ Visit the [Releases](https://github.com/yourusername/git-msg/releases) page to d
    - Linux: `~/.config/git-msg/llm.toml`
    - macOS: `~/Library/Preferences/git-msg/llm.toml`
    - Windows: `%LOCALAPPDATA%\git-msg\Config\llm.toml`
+
+   You can also use the `--init` flag to quickly create the configuration file, which will also copy the built-in skills to the designated skill directory.
 
    Example file content:
 
