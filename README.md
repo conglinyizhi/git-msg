@@ -125,3 +125,4 @@ This tool uses the following excellent open-source libraries:
 - [go-toml](https://github.com/pelletier/go-toml) (MIT)
 - [pflag](https://github.com/spf13/pflag) (BSD-3)
 - [promptkit](https://github.com/erikgeiser/promptkit) (MIT)
+- [cloudwego/eino](https://github.com/cloudwego/eino) (Apache-2.0)
