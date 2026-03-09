@@ -82,48 +82,52 @@ func sendReqCore(sys, user string, config RemoteAPIConfig) (string, error) {
 		return "", fmt.Errorf("状态码不在预期内：%d", resp.StatusCode)
 	}
 	var commitMessage strings.Builder
-	err = openaiRespStreamScan(resp, &commitMessage, err)
+	err = openaiRespStreamScan(resp, &commitMessage)
 	// 打印一个空行，避免大模型输出之后和后续内容写在一行内
 	fmt.Println()
 	return commitMessage.String(), err
 }
 
-func openaiRespStreamScan(resp *http.Response, commitMessage *strings.Builder, err error) error {
-	scanner := bufio.NewScanner(resp.Body)
-	for scanner.Scan() {
-		line := scanner.Text()
-		length := len(line)
-		// 忽略空行
-		if length == 0 {
-			continue
-		}
-
-		// 解析 "data: " 前缀
-		if length > 5 && line[:5] == "data:" {
-			line = line[5:]
-		}
-
-		// "[DONE]" 标记结束
-		if strings.TrimSpace(line) == "[DONE]" {
-			break
-		}
-
-		var event Event
-		// 解析 JSON 数据
-		err := json.Unmarshal([]byte(line), &event)
-		if err != nil {
-			fmt.Println("解析 JSON 出错，原因:", err)
-			fmt.Println("原始 JSON 数据:", line)
-			continue
-		}
-		// 提取并打印 delta.content
-		if len(event.Choices) > 0 && event.Choices[0].Delta.Content != "" {
-			content := event.Choices[0].Delta.Content
+func openaiRespStreamScan(resp *http.Response, commitMessage *strings.Builder) error {
+	// 异常打印函数
+	logJSONParseError := func(err error, line string) {
+		fmt.Println("解析 JSON 出错，原因:", err)
+		fmt.Println("原始 JSON 数据:", line)
+	}
+	appendDeltaContent := func(e Event) {
+		if len(e.Choices) > 0 && e.Choices[0].Delta.Content != "" {
+			content := e.Choices[0].Delta.Content
 			fmt.Print(content)
 			commitMessage.WriteString(content)
 		}
 	}
-	err = scanner.Err()
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		line := scanner.Text()
+		length := len(line)
+		// 忽略空行，但考虑到数据行和 [DONE] 长度 >4，因此微调逻辑
+		if length < 5 {
+			continue
+		}
+		// 解析 "data: " 前缀
+		if line[:5] == "data:" {
+			line = line[5:]
+		}
+		// "[DONE]" 标记结束
+		if strings.TrimSpace(line) == "[DONE]" {
+			break
+		}
+		var event Event
+		// 解析 JSON 数据
+		err := json.Unmarshal([]byte(line), &event)
+		if err != nil {
+			logJSONParseError(err, line)
+			continue
+		}
+		// 提取并打印 delta.content
+		appendDeltaContent(event)
+	}
+	err := scanner.Err()
 	if err != nil {
 		fmt.Println("HTTP 请求 Body 扫描产生了意外错误：", err)
 	}
