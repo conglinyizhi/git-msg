@@ -90,20 +90,20 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	if isNeedAdd {
 		selectPrompt := selection.New("本次操作使用暂存区外的文件差异，先添加到暂存区然后提交吗？", []string{"Yes", "No", showGitStatusItem, exitSelectPromptItem})
 		selectPrompt.PageSize = 2
+	loop:
 		for {
 			spResult, err := selectPrompt.RunPrompt()
 			if err != nil {
 				log.Fatalln("交互命令出现异常")
 				return err
 			}
-			if spResult == "Yes" {
+			switch spResult {
+			case "Yes":
 				goAdd = true
-				break
-			}
-			if spResult == exitSelectPromptItem {
+				break loop
+			case exitSelectPromptItem:
 				return fmt.Errorf("用户选择退出")
-			}
-			if spResult == showGitStatusItem {
+			case showGitStatusItem:
 				cmdResult, err := getStatus(cmd)
 				if err != nil {
 					return err
@@ -112,7 +112,6 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 				fmt.Println("*咳咳*，所以……")
 			}
 		}
-
 	}
 
 	if goAdd {
