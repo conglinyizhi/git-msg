@@ -192,7 +192,6 @@ func initConfigDir(rootDir string) error {
 	if err := initNewTomlFile(RemoteAPIConfig{}); err != nil {
 		return err
 	}
-	fmt.Println("配置文件完成初始化，请打开并填写文件 " + filepath.Join(rootDir, "llm.toml"))
 	return nil
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -43,7 +44,19 @@ func getConfigValue() (RemoteAPIConfig, error) {
 func initNewTomlFile(config RemoteAPIConfig) error {
 	configRootDir, err := getConfigRootDir("")
 	if err != nil {
-		return fmt.Errorf("定位配置文件路径错误:%w", err)
+		log.Fatalln("定位配置文件路径错误")
+		return err
+	}
+	configFilePath := filepath.Join(configRootDir, "llm.toml")
+	_, err = os.Stat(configFilePath)
+	if err == nil {
+		// 文件存在，提示并返回
+		log.Printf("配置文件已经存在，不做任何修改: %s", configFilePath)
+		return nil
+	}
+	if !errors.Is(err, syscall.ENOENT) {
+		log.Fatalln("检查配置文件存在性失败", err)
+		return err
 	}
 	pathPerm := os.FileMode(0755)
 	if err := os.MkdirAll(configRootDir, pathPerm); err != nil {
@@ -53,12 +66,11 @@ func initNewTomlFile(config RemoteAPIConfig) error {
 	if err != nil {
 		return err
 	}
-	configFilePath := filepath.Join(configRootDir, "llm.toml")
-
 	filePerm := os.FileMode(0644)
 	if err := os.WriteFile(configFilePath, tomlFileBody, filePerm); err != nil {
 		return err
 	}
+	fmt.Println("配置文件完成初始化，请打开并填写文件 ", configFilePath)
 	return nil
 }
 
