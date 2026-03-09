@@ -82,6 +82,13 @@ func sendReqCore(sys, user string, config RemoteAPIConfig) (string, error) {
 		return "", fmt.Errorf("状态码不在预期内：%d", resp.StatusCode)
 	}
 	var commitMessage strings.Builder
+	err = openaiRespStreamScan(resp, &commitMessage, err)
+	// 打印一个空行，避免大模型输出之后和后续内容写在一行内
+	fmt.Println()
+	return commitMessage.String(), err
+}
+
+func openaiRespStreamScan(resp *http.Response, commitMessage *strings.Builder, err error) error {
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -116,13 +123,11 @@ func sendReqCore(sys, user string, config RemoteAPIConfig) (string, error) {
 			commitMessage.WriteString(content)
 		}
 	}
-	// 打印一个空行，避免大模型输出之后和后续内容写在一行内
-	fmt.Println()
 	err = scanner.Err()
 	if err != nil {
 		fmt.Println("HTTP 请求 Body 扫描产生了意外错误：", err)
 	}
-	return commitMessage.String(), err
+	return err
 }
 
 func sendDiffReq(diff string, cfg RemoteAPIConfig) (string, error) {
