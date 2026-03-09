@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"syscall"
 
 	"github.com/erikgeiser/promptkit/confirmation"
@@ -172,8 +173,30 @@ func subcommand_Init() int {
 		log.Fatalln("定位配置目录失败：", err)
 		return 1
 	}
-	initConfigDir(rootDir)
-	initSkillDir(rootDir)
+	errChan := make(chan error, 2)
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		if err := initConfigDir(rootDir); err != nil {
+			errChan <- fmt.Errorf("初始化配置目录失败：%w", err)
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		if err := initSkillDir(rootDir); err != nil {
+			errChan <- fmt.Errorf("初始化技能目录失败：%w", err)
+		}
+	}()
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+
+	// 遍历通道，处理所有错误
+	for err := range errChan {
+		log.Println(err) // 可以根据需求选择是否终止程序
+	}
 	return 0
 }
 
