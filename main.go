@@ -57,9 +57,7 @@ func sendReqCore(sys, user string, config RemoteAPIConfig) (string, error) {
 	}
 
 	// 根据字符串准备一个Reader
-	bytesReader := bytes.NewReader(jsonObject)
-
-	req.Body = io.NopCloser(bytesReader)
+	req.Body = io.NopCloser(bytes.NewReader(jsonObject))
 	req.ContentLength = int64(len(jsonObject))
 
 	client := &http.Client{}
