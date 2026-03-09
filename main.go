@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/erikgeiser/promptkit/selection"
@@ -207,11 +209,20 @@ func initSkillDir(rootDir string) error {
 		return err
 	}
 	for _, skill := range skillFiles {
+		targetSkillFilePath := filepath.Join(rootDir, "skill", skill.Name())
+		_, err := os.Stat(targetSkillFilePath)
+		if err == nil {
+			log.Println("技能文件", targetSkillFilePath, "已经存在，略过")
+			continue
+		}
+		if !errors.Is(err, syscall.ENOENT) {
+			log.Println("无法确定", targetSkillFilePath, "是否存在，略过")
+			continue
+		}
 		if skill.IsDir() {
 			continue
 		}
 		data, err := skillFilesEmbed.ReadFile(filepath.Join("skill", skill.Name()))
-		targetSkillFilePath := filepath.Join(rootDir, "skill", skill.Name())
 		if err != nil {
 			fmt.Println("提取" + targetSkillFilePath + "失败（读取文件出错），原因：" + err.Error())
 			continue
