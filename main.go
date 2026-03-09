@@ -172,7 +172,6 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 			if spResult == showGitStatusItem {
 				cmdResult, err := getStatus(cmd)
 				if err != nil {
-					fmt.Fprintln(os.Stdout, "执行命令 status 失败，原因：", err)
 					return err
 				}
 				printCommandOutput(cmdResult, "status -sb")
@@ -185,7 +184,6 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	if goAdd {
 		stdout, err := runGitAdd(cmd)
 		if err != nil {
-			fmt.Fprintln(os.Stdout, "执行命令 add 失败，原因：", err)
 			return err
 		}
 		printCommandOutput(stdout, "add")
@@ -193,7 +191,6 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	if goCommit {
 		stdout, err := runGitCommit(cmd, commitMessage)
 		if err != nil {
-			fmt.Fprintln(os.Stdout, "执行命令 commit 失败，原因：", err)
 			return err
 		}
 		printCommandOutput(stdout, "commit -m")
