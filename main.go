@@ -29,16 +29,19 @@ func afterRemoteCallRollback(msg string) {
 	println("[回退]大模型输出结果将保存到", tmpFilePath)
 }
 
-func sendReqCore(sys, user string, config RemoteAPIConfig) (string, error) {
+func buildHTTPReq(config RemoteAPIConfig) (*http.Request, error) {
 	req, err := http.NewRequest("POST", config.BASE_URL, nil)
 	if err != nil {
-		return "", fmt.Errorf("请求构建失败，详情：%w", err)
+		return nil, err
 	}
-
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+config.API_KEY)
+	return req, nil
+}
+
+func openaiHTTPBodyBuffer(sys, user string, cfg RemoteAPIConfig) ([]byte, error) {
 	jsonObjectMap := map[string]any{
-		"model": config.MODEL_NAME,
+		"model": cfg.MODEL_NAME,
 		"messages": []map[string]string{
 			{
 				"role":    "system",
@@ -51,14 +54,23 @@ func sendReqCore(sys, user string, config RemoteAPIConfig) (string, error) {
 		"type":   "text",
 		"stream": true,
 	}
-	jsonObject, err := json.Marshal(jsonObjectMap)
+	return json.Marshal(jsonObjectMap)
+}
+
+func sendReqCore(sys, user string, config RemoteAPIConfig) (string, error) {
+	req, err := buildHTTPReq(config)
+	if err != nil {
+		return "", fmt.Errorf("请求构建失败，详情：%w", err)
+	}
+	jsonBuffer, err := openaiHTTPBodyBuffer(sys, user, config)
+
 	if err != nil {
 		return "", fmt.Errorf("json.Marshal JSON解析失败，原因：%w", err)
 	}
 
 	// 根据字符串准备一个Reader
-	req.Body = io.NopCloser(bytes.NewReader(jsonObject))
-	req.ContentLength = int64(len(jsonObject))
+	req.Body = io.NopCloser(bytes.NewReader(jsonBuffer))
+	req.ContentLength = int64(len(jsonBuffer))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
