@@ -85,10 +85,12 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	}
 	// 是否需要添加文件到暂存区
 	var goAdd = false
+	const YesItem = "是(Yes)"
+	const NoItem = "否(No)"
 	const showGitStatusItem = "查看仓库状态"
 	const exitSelectPromptItem = "退出"
 	if isNeedAdd {
-		selectPrompt := selection.New("本次操作使用暂存区外的文件差异，先添加到暂存区然后提交吗？", []string{"Yes", "No", showGitStatusItem, exitSelectPromptItem})
+		selectPrompt := selection.New("本次操作使用暂存区外的文件差异，先添加到暂存区然后提交吗？", []string{YesItem, NoItem, showGitStatusItem, exitSelectPromptItem})
 		selectPrompt.PageSize = 2
 	loop:
 		for {
@@ -98,10 +100,10 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 				return err
 			}
 			switch spResult {
-			case "Yes":
+			case YesItem:
 				goAdd = true
 				break loop
-			case "No":
+			case NoItem:
 				goAdd = false
 				break loop
 			case exitSelectPromptItem:
