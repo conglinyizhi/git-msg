@@ -68,11 +68,6 @@ func reportStream(sr *schema.StreamReader[*schema.Message]) (string, error) {
 	}
 }
 
-func sendDiffReq(diff string, cfg RemoteAPIConfig) (string, error) {
-	prompt := getPromptMain()
-	return sendReqCore(prompt, diff, cfg)
-}
-
 func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error {
 	// 询问用户是否提交，如果需要，则提交
 	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
@@ -154,7 +149,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	commitMessage, err := sendDiffReq(diff, config)
+	commitMessage, err := sendReqCore(getPromptMain(), diff, config)
 	if err != nil {
 		fmt.Fprintln(os.Stdout, "调用远程大模型失败，原因：", err)
 		os.Exit(1)
