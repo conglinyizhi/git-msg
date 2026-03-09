@@ -65,10 +65,10 @@ func sendReqCore(sys, user string, config RemoteAPIConfig) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("HTTP 请求失败，原因：%w", err)
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		return "", fmt.Errorf("状态码不在预期内：%d", resp.StatusCode)
 	}
-	defer resp.Body.Close()
 	var commitMessage strings.Builder
 	scanner := bufio.NewScanner(resp.Body)
 	for scanner.Scan() {
