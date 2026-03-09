@@ -106,7 +106,11 @@ func sendReqCore(sys, user string, config RemoteAPIConfig) (string, error) {
 	}
 	// 打印一个空行，避免大模型输出之后和后续内容写在一行内
 	fmt.Println()
-	return commitMessage.String(), nil
+	err = scanner.Err()
+	if err != nil {
+		fmt.Println("HTTP 请求 Body 扫描产生了意外错误：", err)
+	}
+	return commitMessage.String(), err
 }
 
 func sendDiffReq(diff string, cfg RemoteAPIConfig) (string, error) {
