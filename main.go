@@ -224,15 +224,16 @@ func initConfigDir(rootDir string) error {
 var skillFilesEmbed embed.FS
 
 func initSkillDir(rootDir string) error {
-	if err := os.MkdirAll(filepath.Join(rootDir, "skill"), 0755); err != nil {
+	const skillPath = "skill"
+	if err := os.MkdirAll(filepath.Join(rootDir, skillPath), 0755); err != nil {
 		return err
 	}
-	skillFiles, err := skillFilesEmbed.ReadDir("skill")
+	skillFiles, err := skillFilesEmbed.ReadDir(skillPath)
 	if err != nil {
 		return err
 	}
 	for _, skill := range skillFiles {
-		copyTarget := filepath.Join(rootDir, "skill", skill.Name())
+		copyTarget := filepath.Join(rootDir, skillPath, skill.Name())
 		_, err := os.Stat(copyTarget)
 		if err == nil {
 			log.Println("技能文件", copyTarget, "已经存在，略过")
