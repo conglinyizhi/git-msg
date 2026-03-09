@@ -24,7 +24,7 @@ func afterRemoteCallRollback(msg string) {
 	tmpFilePath := filepath.Join(os.TempDir(), "git-commit-latest.txt")
 	err := os.WriteFile(tmpFilePath, []byte(msg), 0666)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, "[回退]失败，原因：", err)
+		log.Fatalln("[回退]失败，原因：", err)
 		return
 	}
 	println("[回退]大模型输出结果将保存到", tmpFilePath)
@@ -37,14 +37,16 @@ func sendReqCore(sys, user string, cfg RemoteAPIConfig) (string, error) {
 		BaseURL: cfg.BASE_URL,
 	})
 	if err != nil {
-		return "", fmt.Errorf("创建 chat model 失败: %w", err) // 返回错误，不再静默忽略
+		log.Fatalln("创建 chat model 失败")
+		return "", err
 	}
 	sr, err := chatModel.Stream(context.Background(), []*schema.Message{
 		schema.SystemMessage(sys),
 		schema.UserMessage(user),
 	})
 	if err != nil {
-		return "", fmt.Errorf("创建 stream 失败: %w", err) // 返回错误，不再静默忽略
+		log.Fatalln("创建 stream 失败")
+		return "", err
 	}
 	return reportStream(sr)
 }
@@ -72,7 +74,7 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	// 询问用户是否提交，如果需要，则提交
 	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
 	if err != nil {
-		fmt.Fprintln(os.Stdout, "交互命令出现异常：", err)
+		log.Fatalln("交互命令出现异常")
 		return err
 	}
 	if !goCommit {
@@ -88,7 +90,7 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 		for {
 			spResult, err := selectPrompt.RunPrompt()
 			if err != nil {
-				fmt.Fprintln(os.Stdout, "交互命令出现异常：", err)
+				log.Fatalln("交互命令出现异常")
 				return err
 			}
 			if spResult == "Yes" {
@@ -139,24 +141,24 @@ func main() {
 	}
 
 	if err != nil {
-		fmt.Fprintln(os.Stdout, "获取大模型配置信息失败：", err)
+		log.Fatalln("获取大模型配置信息失败：", err)
 		os.Exit(1)
 	}
 
 	diff, isNeedAddCommand, err := getDiff(cmdConfig)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, "获取差异信息失败，原因：", err)
+		log.Fatalln("获取差异信息失败，原因：", err)
 		os.Exit(1)
 	}
 
 	commitMessage, err := sendReqCore(getPromptMain(), diff, config)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, "调用远程大模型失败，原因：", err)
+		log.Fatalln("调用远程大模型失败，原因：", err)
 		os.Exit(1)
 	}
 	err = callcmd(cmdConfig, commitMessage, isNeedAddCommand)
 	if err != nil {
-		fmt.Fprintln(os.Stdout, "运行指令的过程中出现错误，详情：", err)
+		log.Fatalln("运行指令的过程中出现错误，详情：", err)
 		afterRemoteCallRollback(commitMessage)
 		os.Exit(1)
 	}
@@ -165,7 +167,7 @@ func main() {
 func subcommand_Init() int {
 	rootDir, err := getConfigRootDir("")
 	if err != nil {
-		fmt.Fprintln(os.Stdout, "定位配置目录失败：", err)
+		log.Fatalln("定位配置目录失败：", err)
 		return 1
 	}
 	initConfigDir(rootDir)
