@@ -27,7 +27,7 @@ func afterRemoteCallRollback(msg string) {
 		log.Fatalln("[回退]失败，原因：", err)
 		return
 	}
-	println("[回退]大模型输出结果将保存到", tmpFilePath)
+	fmt.Println("[回退]大模型输出结果将保存到", tmpFilePath)
 }
 
 func sendReqCore(sys, user string, cfg RemoteAPIConfig) (string, error) {
