@@ -1,19 +1,20 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
+	"context"
 	"embed"
-	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/erikgeiser/promptkit/selection"
+
+	"github.com/cloudwego/eino-ext/components/model/openai"
+	"github.com/cloudwego/eino/schema"
 )
 
 const appName = "git-msg"
@@ -29,109 +30,42 @@ func afterRemoteCallRollback(msg string) {
 	println("[回退]大模型输出结果将保存到", tmpFilePath)
 }
 
-func buildHTTPReq(config RemoteAPIConfig) (*http.Request, error) {
-	req, err := http.NewRequest("POST", config.BASE_URL, nil)
+func sendReqCore(sys, user string, cfg RemoteAPIConfig) (string, error) {
+	chatModel, err := openai.NewChatModel(context.Background(), &openai.ChatModelConfig{
+		Model:   cfg.MODEL_NAME,
+		APIKey:  cfg.API_KEY,
+		BaseURL: cfg.BASE_URL,
+	})
 	if err != nil {
-		return nil, err
+		return "", fmt.Errorf("创建 chat model 失败: %w", err) // 返回错误，不再静默忽略
 	}
-	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+config.API_KEY)
-	return req, nil
+	sr, err := chatModel.Stream(context.Background(), []*schema.Message{
+		schema.SystemMessage(sys),
+		schema.UserMessage(user),
+	})
+	if err != nil {
+		return "", fmt.Errorf("创建 stream 失败: %w", err) // 返回错误，不再静默忽略
+	}
+	return reportStream(sr)
 }
 
-func openaiHTTPBodyBuffer(sys, user string, cfg RemoteAPIConfig) ([]byte, error) {
-	jsonObjectMap := map[string]any{
-		"model": cfg.MODEL_NAME,
-		"messages": []map[string]string{
-			{
-				"role":    "system",
-				"content": sys,
-			}, {
-				"role":    "user",
-				"content": user,
-			},
-		},
-		"type":   "text",
-		"stream": true,
-	}
-	return json.Marshal(jsonObjectMap)
-}
-
-func sendReqCore(sys, user string, config RemoteAPIConfig) (string, error) {
-	req, err := buildHTTPReq(config)
-	if err != nil {
-		return "", fmt.Errorf("请求构建失败，详情：%w", err)
-	}
-	jsonBuffer, err := openaiHTTPBodyBuffer(sys, user, config)
-
-	if err != nil {
-		return "", fmt.Errorf("json.Marshal JSON解析失败，原因：%w", err)
-	}
-
-	// 根据字符串准备一个Reader
-	req.Body = io.NopCloser(bytes.NewReader(jsonBuffer))
-	req.ContentLength = int64(len(jsonBuffer))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("HTTP 请求失败，原因：%w", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("状态码不在预期内：%d", resp.StatusCode)
-	}
-	var commitMessage strings.Builder
-	err = openaiRespStreamScan(resp, &commitMessage)
-	// 打印一个空行，避免大模型输出之后和后续内容写在一行内
-	fmt.Println()
-	return commitMessage.String(), err
-}
-
-func openaiRespStreamScan(resp *http.Response, commitMessage *strings.Builder) error {
-	// 异常打印函数
-	logJSONParseError := func(err error, line string) {
-		fmt.Println("解析 JSON 出错，原因:", err)
-		fmt.Println("原始 JSON 数据:", line)
-	}
-	appendDeltaContent := func(e Event) {
-		if len(e.Choices) > 0 && e.Choices[0].Delta.Content != "" {
-			content := e.Choices[0].Delta.Content
-			fmt.Print(content)
-			commitMessage.WriteString(content)
+func reportStream(sr *schema.StreamReader[*schema.Message]) (string, error) {
+	defer sr.Close()
+	var strBuff strings.Builder
+	for {
+		message, err := sr.Recv()
+		if err == io.EOF { // 流式输出结束
+			fmt.Println()
+			return strBuff.String(), nil
 		}
-	}
-	scanner := bufio.NewScanner(resp.Body)
-	for scanner.Scan() {
-		line := scanner.Text()
-		length := len(line)
-		// 忽略空行，但考虑到数据行和 [DONE] 长度 >4，因此微调逻辑
-		if length < 5 {
-			continue
-		}
-		// 解析 "data: " 前缀
-		if line[:5] == "data:" {
-			line = line[5:]
-		}
-		// "[DONE]" 标记结束
-		if strings.TrimSpace(line) == "[DONE]" {
-			break
-		}
-		var event Event
-		// 解析 JSON 数据
-		err := json.Unmarshal([]byte(line), &event)
 		if err != nil {
-			logJSONParseError(err, line)
-			continue
+			fmt.Println()
+			log.Fatalf("recv failed: %v", err)
+			return strBuff.String(), err
 		}
-		// 提取并打印 delta.content
-		appendDeltaContent(event)
+		fmt.Print(message.Content)
+		strBuff.WriteString(message.Content)
 	}
-	err := scanner.Err()
-	if err != nil {
-		fmt.Println("HTTP 请求 Body 扫描产生了意外错误：", err)
-	}
-	return err
 }
 
 func sendDiffReq(diff string, cfg RemoteAPIConfig) (string, error) {
