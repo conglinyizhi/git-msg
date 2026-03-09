@@ -101,6 +101,9 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 			case "Yes":
 				goAdd = true
 				break loop
+			case "No":
+				goAdd = false
+				break loop
 			case exitSelectPromptItem:
 				return fmt.Errorf("用户选择退出")
 			case showGitStatusItem:
