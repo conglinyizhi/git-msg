@@ -232,14 +232,14 @@ func initSkillDir(rootDir string) error {
 		return err
 	}
 	for _, skill := range skillFiles {
-		targetSkillFilePath := filepath.Join(rootDir, "skill", skill.Name())
-		_, err := os.Stat(targetSkillFilePath)
+		copyTarget := filepath.Join(rootDir, "skill", skill.Name())
+		_, err := os.Stat(copyTarget)
 		if err == nil {
-			log.Println("技能文件", targetSkillFilePath, "已经存在，略过")
+			log.Println("技能文件", copyTarget, "已经存在，略过")
 			continue
 		}
 		if !errors.Is(err, syscall.ENOENT) {
-			log.Println("无法确定", targetSkillFilePath, "是否存在，略过")
+			log.Println("无法确定", copyTarget, "是否存在，略过")
 			continue
 		}
 		if skill.IsDir() {
@@ -247,14 +247,14 @@ func initSkillDir(rootDir string) error {
 		}
 		data, err := skillFilesEmbed.ReadFile(filepath.Join("skill", skill.Name()))
 		if err != nil {
-			log.Println("提取" + targetSkillFilePath + "失败（读取文件出错），原因：" + err.Error())
+			log.Println("提取" + copyTarget + "失败（读取文件出错），原因：" + err.Error())
 			continue
 		}
-		if err := os.WriteFile(targetSkillFilePath, data, 0644); err != nil {
-			log.Println("提取" + targetSkillFilePath + "失败（写入文件出错），原因：" + err.Error())
+		if err := os.WriteFile(copyTarget, data, 0644); err != nil {
+			log.Println("提取" + copyTarget + "失败（写入文件出错），原因：" + err.Error())
 			continue
 		}
-		log.Println("成功提取" + targetSkillFilePath)
+		log.Println("成功提取" + copyTarget)
 	}
 	return nil
 }
