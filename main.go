@@ -16,6 +16,41 @@ import (
 
 const appName = "git-msg"
 
+// 主函数
+func main() {
+	cmdConfig := parseCommandLineExData()
+	if cmdConfig.init {
+		os.Exit(subcommand_Init())
+	}
+	config, err := getConfigValue()
+	if cmdConfig.ping {
+		os.Exit(subCommand_Ping(config))
+	}
+
+	if err != nil {
+		log.Fatalln("获取大模型配置信息失败：", err)
+		os.Exit(1)
+	}
+
+	diff, isNeedAddCommand, err := getDiff(cmdConfig)
+	if err != nil {
+		log.Fatalln("获取差异信息失败，原因：", err)
+		os.Exit(1)
+	}
+
+	commitMessage, err := sendReqCore(getPromptMain(), diff, config)
+	if err != nil {
+		log.Fatalln("调用远程大模型失败，原因：", err)
+		os.Exit(1)
+	}
+	err = callcmd(cmdConfig, commitMessage, isNeedAddCommand)
+	if err != nil {
+		log.Fatalln("运行指令的过程中出现错误，详情：", err)
+		afterRemoteCallRollback(commitMessage)
+		os.Exit(1)
+	}
+}
+
 // 当调用 LLM 接口后程序后处理报错时回退
 func afterRemoteCallRollback(msg string) {
 	tmpFilePath := filepath.Join(os.TempDir(), "git-commit-latest.txt")
@@ -88,41 +123,6 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 		printCommandOutput(stdout, "commit -m")
 	}
 	return nil
-}
-
-// 主函数
-func main() {
-	cmdConfig := parseCommandLineExData()
-	if cmdConfig.init {
-		os.Exit(subcommand_Init())
-	}
-	config, err := getConfigValue()
-	if cmdConfig.ping {
-		os.Exit(subCommand_Ping(config))
-	}
-
-	if err != nil {
-		log.Fatalln("获取大模型配置信息失败：", err)
-		os.Exit(1)
-	}
-
-	diff, isNeedAddCommand, err := getDiff(cmdConfig)
-	if err != nil {
-		log.Fatalln("获取差异信息失败，原因：", err)
-		os.Exit(1)
-	}
-
-	commitMessage, err := sendReqCore(getPromptMain(), diff, config)
-	if err != nil {
-		log.Fatalln("调用远程大模型失败，原因：", err)
-		os.Exit(1)
-	}
-	err = callcmd(cmdConfig, commitMessage, isNeedAddCommand)
-	if err != nil {
-		log.Fatalln("运行指令的过程中出现错误，详情：", err)
-		afterRemoteCallRollback(commitMessage)
-		os.Exit(1)
-	}
 }
 
 func subcommand_Init() int {
