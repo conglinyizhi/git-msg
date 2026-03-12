@@ -11,8 +11,9 @@ import (
 	"github.com/cloudwego/eino/schema"
 )
 
-func sendReqCore(sys, user string, cfg RemoteAPIConfig) (string, error) {
-	chatModel, err := openai.NewChatModel(context.Background(), &openai.ChatModelConfig{
+func sendReqCore(sys, user string, cfg RemoteAPIConfig, isStreamMode bool) (string, error) {
+	ctx := context.Background()
+	chatModel, err := openai.NewChatModel(ctx, &openai.ChatModelConfig{
 		Model:   cfg.MODEL_NAME,
 		APIKey:  cfg.API_KEY,
 		BaseURL: cfg.BASE_URL,
@@ -21,15 +22,24 @@ func sendReqCore(sys, user string, cfg RemoteAPIConfig) (string, error) {
 		log.Fatalln("创建 chat model 失败")
 		return "", err
 	}
-	sr, err := chatModel.Stream(context.Background(), []*schema.Message{
+	messageList := []*schema.Message{
 		schema.SystemMessage(sys),
 		schema.UserMessage(user),
-	})
-	if err != nil {
-		log.Fatalln("创建 stream 失败")
-		return "", err
 	}
-	return reportStream(sr)
+	if isStreamMode {
+		sr, err := chatModel.Stream(ctx, messageList)
+		if err != nil {
+			log.Fatalln("创建 stream 失败")
+			return "", err
+		}
+		return reportStream(sr)
+	} else {
+		txt, err := chatModel.Generate(ctx, messageList)
+		if err != nil {
+			return "", err
+		}
+		return txt.Content, nil
+	}
 }
 
 func reportStream(sr *schema.StreamReader[*schema.Message]) (string, error) {

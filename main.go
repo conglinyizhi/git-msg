@@ -38,7 +38,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	commitMessage, err := sendReqCore(getPromptMain(), diff, config)
+	commitMessage, err := sendReqCore(getPromptMain(), diff, config, true)
 	if err != nil {
 		log.Fatalln("调用远程大模型失败，原因：", err)
 		os.Exit(1)
@@ -159,7 +159,9 @@ func subcommand_Init() int {
 }
 
 func subCommand_Ping(cfg RemoteAPIConfig) int {
-	if str, err := sendReqCore("test", "you must replay: OK.(DO NOT MORE TEXT)", cfg); err != nil {
+	const testTitle = "测试"
+	const testUser = "请返回且只返回OK"
+	if str, err := sendReqCore(testTitle, testUser, cfg, false); err != nil {
 		fmt.Fprintln(os.Stdout, "测试失败：", err)
 		return 1
 	} else {
