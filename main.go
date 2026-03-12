@@ -73,7 +73,10 @@ func main() {
 	println(isNeedAddCommand)
 
 	msg, err := selectPrompt(messageList)
-
+	if err != nil {
+		afterRemoteCallRollback(messageList)
+		log.Fatalln("选择提交消息时出现了问题，详情：", err)
+	}
 	err = callcmd(cmdConfig, msg, isNeedAddCommand)
 	if err != nil {
 		afterRemoteCallRollback(messageList)
@@ -84,7 +87,7 @@ func main() {
 func selectPrompt(list []string) (string, error) {
 	const allNo = "都不行"
 	selectPrompt := selection.New("请选择提示词", append(list, allNo))
-	selectPrompt.PageSize = len(list)
+	selectPrompt.PageSize = len(list) + 1
 	commitMsg, err := selectPrompt.RunPrompt()
 	if err != nil {
 		return "", err
