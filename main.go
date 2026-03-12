@@ -97,10 +97,11 @@ func selectPrompt(list []string) (string, error) {
 
 // 当调用 LLM 接口后程序后处理报错时回退
 func afterRemoteCallRollback(msg []string) {
+	readySaveString := strings.Join(msg, "\n")
 	tmpFilePath := filepath.Join(os.TempDir(), "git-commit-latest.txt")
-	err := os.WriteFile(tmpFilePath, []byte(strings.Join(msg, "\n")), 0666)
+	err := os.WriteFile(tmpFilePath, []byte(readySaveString), 0666)
 	if err != nil {
-		log.Fatalln("[回退]失败，原因：", err)
+		log.Fatalln("[回退]失败，原因：", err, "\n遗言：\n", readySaveString)
 		return
 	}
 	fmt.Println("[回退]大模型输出结果将保存到", tmpFilePath)
