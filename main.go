@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/erikgeiser/promptkit/confirmation"
@@ -75,7 +76,7 @@ func main() {
 
 	err = callcmd(cmdConfig, msg, isNeedAddCommand)
 	if err != nil {
-		afterRemoteCallRollback(msg)
+		afterRemoteCallRollback(messageList)
 		log.Fatalln("运行指令的过程中出现错误，详情：", err)
 	}
 }
@@ -95,9 +96,9 @@ func selectPrompt(list []string) (string, error) {
 }
 
 // 当调用 LLM 接口后程序后处理报错时回退
-func afterRemoteCallRollback(msg string) {
+func afterRemoteCallRollback(msg []string) {
 	tmpFilePath := filepath.Join(os.TempDir(), "git-commit-latest.txt")
-	err := os.WriteFile(tmpFilePath, []byte(msg), 0666)
+	err := os.WriteFile(tmpFilePath, []byte(strings.Join(msg, "\n")), 0666)
 	if err != nil {
 		log.Fatalln("[回退]失败，原因：", err)
 		return
