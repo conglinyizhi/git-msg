@@ -37,11 +37,11 @@ func main() {
 	}
 
 	commitMessage, err := sendReqCore(getPromptMain(), diff, config, true)
-	for i := 0; i < cmdConfig.loop; i++ {
-		// TODO Go sendReqCore
-	}
 	if err != nil {
 		log.Fatalln("调用远程大模型失败，原因：", err)
+	}
+	for i := 0; i < cmdConfig.loop; i++ {
+		// TODO Go sendReqCore
 	}
 	err = callcmd(cmdConfig, commitMessage, isNeedAddCommand)
 	if err != nil {
