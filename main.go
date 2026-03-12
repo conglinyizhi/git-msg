@@ -85,12 +85,11 @@ func selectPrompt(list []string) (string, error) {
 	selectPrompt := selection.New("请选择提示词", append(list, allNo))
 	selectPrompt.PageSize = len(list)
 	commitMsg, err := selectPrompt.RunPrompt()
-	if err != nil || commitMsg == allNo {
-		if commitMsg == allNo {
-			return "", fmt.Errorf("用户取消提交")
-		} else {
-			return "", err
-		}
+	if err != nil {
+		return "", err
+	}
+	if commitMsg == allNo {
+		return "", fmt.Errorf("用户取消提交")
 	}
 	return commitMsg, nil
 }
