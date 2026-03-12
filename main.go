@@ -38,7 +38,7 @@ func main() {
 
 	var reqWaitGroup sync.WaitGroup
 	reqWaitGroup.Add(cmdConfig.loop)
-	dataChan := make(chan CommitChan, cmdConfig.loop)
+	dataChan := make(chan typeChan[string], cmdConfig.loop)
 
 	var messageList []string
 
@@ -48,9 +48,9 @@ func main() {
 			routineId := i
 			commitMessage, err := sendReqCore(pText, diff, config, false)
 			if err != nil {
-				dataChan <- CommitChan{data: "", err: err, index: routineId}
+				dataChan <- typeChan[string]{data: "", err: err, index: routineId}
 			} else {
-				dataChan <- CommitChan{data: commitMessage, err: nil, index: routineId}
+				dataChan <- typeChan[string]{data: commitMessage, err: nil, index: routineId}
 			}
 		}()
 	}

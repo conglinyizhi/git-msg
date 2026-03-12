@@ -28,8 +28,8 @@ type CommandlineConfig struct {
 	ping bool
 }
 
-type CommitChan struct {
-	data  string
+type typeChan[T any] struct {
+	data  T
 	err   error
 	index int
 }
