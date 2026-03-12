@@ -27,3 +27,9 @@ type CommandlineConfig struct {
 	init bool
 	ping bool
 }
+
+type CommitChan struct {
+	data  string
+	err   error
+	index int
+}

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/erikgeiser/promptkit/selection"
@@ -32,18 +33,66 @@ func main() {
 		log.Fatalln("获取差异信息失败，原因：", err)
 	}
 
-	commitMessage, err := sendReqCore(getPromptMain(), diff, config, true)
-	if err != nil {
-		log.Fatalln("调用远程大模型失败，原因：", err)
-	}
+	pText := getPromptMain()
+
+	var reqWaitGroup sync.WaitGroup
+	reqWaitGroup.Add(cmdConfig.loop)
+	dataChan := make(chan CommitChan, cmdConfig.loop)
+
+	var messageList []string
+
 	for i := 0; i < cmdConfig.loop; i++ {
-		// TODO Go sendReqCore
+		go func() {
+			defer reqWaitGroup.Done()
+			routineId := i
+			commitMessage, err := sendReqCore(pText, diff, config, false)
+			if err != nil {
+				dataChan <- CommitChan{data: "", err: err, index: routineId}
+			} else {
+				dataChan <- CommitChan{data: commitMessage, err: nil, index: routineId}
+			}
+		}()
 	}
-	err = callcmd(cmdConfig, commitMessage, isNeedAddCommand)
+
+	// 等待用 go routine
+	go func() {
+		reqWaitGroup.Wait()
+		close(dataChan)
+	}()
+	routineIndex := 1
+	for data := range dataChan {
+		if data.err != nil {
+			log.Println("好像哪儿出问题了：", data.err)
+		} else {
+			fmt.Println("完成", routineIndex, "/", cmdConfig.loop, "全部|新增：", data.data)
+			messageList = append(messageList, data.data)
+		}
+		routineIndex++
+	}
+	println(isNeedAddCommand)
+
+	msg, err := selectPrompt(messageList)
+
+	err = callcmd(cmdConfig, msg, isNeedAddCommand)
 	if err != nil {
-		afterRemoteCallRollback(commitMessage)
+		afterRemoteCallRollback(msg)
 		log.Fatalln("运行指令的过程中出现错误，详情：", err)
 	}
+}
+
+func selectPrompt(list []string) (string, error) {
+	const allNo = "都不行"
+	selectPrompt := selection.New("请选择提示词", append(list, allNo))
+	selectPrompt.PageSize = len(list)
+	commitMsg, err := selectPrompt.RunPrompt()
+	if err != nil || commitMsg == allNo {
+		if commitMsg == allNo {
+			return "", fmt.Errorf("用户取消提交")
+		} else {
+			return "", err
+		}
+	}
+	return commitMsg, nil
 }
 
 // 当调用 LLM 接口后程序后处理报错时回退
