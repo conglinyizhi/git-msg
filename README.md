@@ -85,6 +85,7 @@ The tool will automatically perform the following steps:
 ### Command Line Options
 
 - `-g, --git <command>`: Specify the Git command path or alias (default `git`). Useful for replacing it with other Git-compatible tools like `yadm`.
+- `-l, --loop <number>`: Send multiple requests simultaneously (default 1) to generate multiple commit messages for selection, making it easier to choose the most appropriate one.
 - `--init`: Initialize the environment required for the current version of git-msg (creates configuration directories and default files).
 - `--ping`: Test the configured large model API with a minimal prompt to verify connectivity.
 
@@ -93,6 +94,7 @@ Example:
 ```bash
 git-msg -g yadm
 git-msg --init
+git-msg -l 3  # Generate 3 commit messages simultaneously for selection
 ```
 
 ## 🧠 Custom Prompts
@@ -108,7 +110,11 @@ Example directory structure:
   └── emoji-only.md
 ```
 
-Each file should contain the system prompt content. The default prompt can be found in the `defaultPrompt` constant in the code.
+### Skill File Format
+
+Skill files use Markdown format. **Note: The header section of the file (such as YAML frontmatter) is currently not processed specially; all content in the file is embedded directly into the system prompt.**
+
+It is recommended to keep skill file content in plain text prompt format.
 
 ## 🤝 Contributing
 

@@ -85,6 +85,7 @@ git-msg
 ### 命令行选项
 
 - `-g, --git <command>`：指定 Git 命令路径或别名（默认 `git`），可用于替代为 `yadm` 等其他 Git 兼容工具。
+- `-l, --loop <number>`：同时发起多个请求（默认 1），生成多条提交信息供选择，方便挑选最合适的。
 - `--init`：尝试对当前版本的 git-msg 所需环境进行最大的初始化（创建配置目录和默认文件）。
 - `--ping`：尝试对配置中的远程大模型发起测试请求，使用最小提示词验证连接性。
 
@@ -93,6 +94,7 @@ git-msg
 ```bash
 git-msg -g yadm
 git-msg --init
+git-msg -l 3  # 同时生成 3 条提交信息供选择
 ```
 
 ## 🧠 自定义提示词
@@ -108,7 +110,11 @@ git-msg --init
   └── emoji-only.md
 ```
 
-每个文件应包含 system prompt 内容。默认 prompt 见代码中的 `defaultPrompt` 常量。
+### 技能文件格式
+
+技能文件使用 Markdown 格式。**注意：文件中的 header 部分（如 YAML frontmatter）目前没有经过特殊处理，文件中的所有内容是直接嵌入到 system prompt 中的。**
+
+建议将技能文件内容保持为纯文本提示词格式。
 
 ## 🤝 贡献
 
