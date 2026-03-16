@@ -28,13 +28,13 @@ type CommandlineConfig struct {
 	ping bool
 }
 
-type typeChan[T any] struct {
+type ChanResult[T any] struct {
 	data  T
 	err   error
 	index int
 }
 
-type scoreMsg struct {
+type ScoreMsg struct {
 	msg   string
 	score int
 }

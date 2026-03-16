@@ -47,7 +47,7 @@ func main() {
 
 	var reqWaitGroup sync.WaitGroup
 	reqWaitGroup.Add(cmdConfig.loop)
-	dataChan := make(chan typeChan[string], cmdConfig.loop)
+	dataChan := make(chan ChanResult[string], cmdConfig.loop)
 
 	for i := 0; i < cmdConfig.loop; i++ {
 		go func() {
@@ -55,9 +55,9 @@ func main() {
 			routineId := i
 			commitMessage, err := sendReqCore(pText, diff, config, false)
 			if err != nil {
-				dataChan <- typeChan[string]{data: "", err: err, index: routineId}
+				dataChan <- ChanResult[string]{data: "", err: err, index: routineId}
 			} else {
-				dataChan <- typeChan[string]{data: commitMessage, err: nil, index: routineId}
+				dataChan <- ChanResult[string]{data: commitMessage, err: nil, index: routineId}
 			}
 		}()
 	}
@@ -68,7 +68,7 @@ func main() {
 		close(dataChan)
 	}()
 	routineIndex := 0
-	var messageListScore []scoreMsg
+	var messageListScore []ScoreMsg
 	lengthStringSize := len(strconv.Itoa(cmdConfig.loop))
 	for data := range dataChan {
 		routineIndex++
@@ -87,7 +87,7 @@ func main() {
 		}
 		// 如果没有找到相同项目，新建条目，分数=1
 		if !isFoundElement {
-			messageListScore = append(messageListScore, scoreMsg{score: 1, msg: data.data})
+			messageListScore = append(messageListScore, ScoreMsg{score: 1, msg: data.data})
 		}
 		indexLength := len(strconv.Itoa(routineIndex))
 		nowIndexString := strings.Join([]string{strings.Repeat("0", lengthStringSize-indexLength), strconv.Itoa(routineIndex)}, "")
@@ -97,7 +97,7 @@ func main() {
 
 	var messageList []string
 	// 卸载分数外壳，同时以分数排序
-	slices.SortFunc(messageListScore, func(a, b scoreMsg) int {
+	slices.SortFunc(messageListScore, func(a, b ScoreMsg) int {
 		return b.score - a.score
 	})
 	for _, obj := range messageListScore {
