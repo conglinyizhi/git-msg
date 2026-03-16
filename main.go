@@ -66,29 +66,30 @@ func main() {
 		reqWaitGroup.Wait()
 		close(dataChan)
 	}()
-	routineIndex := 1
+	routineIndex := 0
 	var messageListScore []scoreMsg
 	for data := range dataChan {
+		routineIndex++
 		if data.err != nil {
 			log.Println("好像哪儿出问题了：", data.err)
-		} else {
-			// 如果找到相通条目，分数+1
-			isFoundElement := false
-			for _, v := range messageListScore {
-				if v.msg == data.data {
-					v.score++
-					isFoundElement = true
-					break
-				}
-			}
-			// 如果没有找到相同项目，新建条目，分数=1
-			if !isFoundElement {
-				messageListScore = append(messageListScore, scoreMsg{score: 1, msg: data.data})
-			}
-
-			fmt.Println("完成", routineIndex, "/", cmdConfig.loop, "全部|", isFoundElementToString(isFoundElement), data.data)
+			continue
 		}
-		routineIndex++
+		// 如果找到相通条目，分数+1
+		isFoundElement := false
+		for _, v := range messageListScore {
+			if v.msg == data.data {
+				v.score++
+				isFoundElement = true
+				break
+			}
+		}
+		// 如果没有找到相同项目，新建条目，分数=1
+		if !isFoundElement {
+			messageListScore = append(messageListScore, scoreMsg{score: 1, msg: data.data})
+		}
+
+		fmt.Println("完成", routineIndex, "\t/", cmdConfig.loop, "全部|", isFoundElementToString(isFoundElement), data.data)
+
 	}
 	println(isNeedAddCommand)
 
