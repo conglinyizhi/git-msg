@@ -29,7 +29,7 @@ cd git-msg
 go build -o git-msg
 ```
 
-将生成的 `git-msg` 二进制文件放到 `PATH` 下，例如 `/usr/local/bin`。
+将生成的 `git-msg` 二进制文件放到 `PATH` 下，例如 `~/.local/bin`。
 
 ## ⚙️ 配置
 

@@ -29,7 +29,7 @@ cd git-msg
 go build -o git-msg
 ```
 
-Place the generated `git-msg` binary in your `PATH`, e.g., `/usr/local/bin`.
+Place the generated `git-msg` binary in your `PATH`, e.g., `~/.local/bin`.
 
 ## ⚙️ Configuration
 
