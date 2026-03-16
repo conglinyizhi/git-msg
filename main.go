@@ -50,16 +50,15 @@ func main() {
 	dataChan := make(chan ChanResult[string], cmdConfig.loop)
 
 	for i := 0; i < cmdConfig.loop; i++ {
-		go func() {
+		go func(routineId int) {
 			defer reqWaitGroup.Done()
-			routineId := i
 			commitMessage, err := sendReqCore(pText, diff, config, false)
 			if err != nil {
 				dataChan <- ChanResult[string]{data: "", err: err, index: routineId}
 			} else {
 				dataChan <- ChanResult[string]{data: commitMessage, err: nil, index: routineId}
 			}
-		}()
+		}(i)
 	}
 
 	// 等待用 go routine
