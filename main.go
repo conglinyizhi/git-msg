@@ -78,9 +78,9 @@ func main() {
 		}
 		// 如果找到相通条目，分数+1
 		isFoundElement := false
-		for _, v := range messageListScore {
-			if v.msg == data.data {
-				v.score++
+		for index, el := range messageListScore {
+			if el.msg == data.data {
+				messageListScore[index].score++
 				isFoundElement = true
 				break
 			}
