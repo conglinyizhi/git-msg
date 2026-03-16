@@ -98,7 +98,7 @@ func main() {
 	var messageList []string
 	// 卸载分数外壳，同时以分数排序
 	slices.SortFunc(messageListScore, func(a, b scoreMsg) int {
-		return a.score - b.score
+		return b.score - a.score
 	})
 	for _, obj := range messageListScore {
 		messageList = append(messageList, obj.msg)
