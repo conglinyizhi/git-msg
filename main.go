@@ -94,7 +94,6 @@ func main() {
 		fmt.Println("完成", nowIndexString, "/", cmdConfig.loop, "全部|", isFoundElementToString(isFoundElement), data.data)
 
 	}
-	println(isNeedAddCommand)
 
 	var messageList []string
 	// 卸载分数外壳，同时以分数排序
