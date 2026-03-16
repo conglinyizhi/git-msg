@@ -33,3 +33,8 @@ type typeChan[T any] struct {
 	err   error
 	index int
 }
+
+type scoreMsg struct {
+	msg   string
+	score int
+}

@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 
@@ -16,6 +17,13 @@ const appName = "git-msg"
 
 // 主函数
 func main() {
+	isFoundElementToString := func(isFound bool) string {
+		if isFound {
+			return "分数增加:"
+		} else {
+			return "新增条目:"
+		}
+	}
 	cmdConfig := parseCommandLineExData()
 	if cmdConfig.init {
 		os.Exit(subcommand_Init())
@@ -40,8 +48,6 @@ func main() {
 	reqWaitGroup.Add(cmdConfig.loop)
 	dataChan := make(chan typeChan[string], cmdConfig.loop)
 
-	var messageList []string
-
 	for i := 0; i < cmdConfig.loop; i++ {
 		go func() {
 			defer reqWaitGroup.Done()
@@ -61,16 +67,39 @@ func main() {
 		close(dataChan)
 	}()
 	routineIndex := 1
+	var messageListScore []scoreMsg
 	for data := range dataChan {
 		if data.err != nil {
 			log.Println("好像哪儿出问题了：", data.err)
 		} else {
-			fmt.Println("完成", routineIndex, "/", cmdConfig.loop, "全部|新增：", data.data)
-			messageList = append(messageList, data.data)
+			// 如果找到相通条目，分数+1
+			isFoundElement := false
+			for _, v := range messageListScore {
+				if v.msg == data.data {
+					v.score++
+					isFoundElement = true
+					break
+				}
+			}
+			// 如果没有找到相同项目，新建条目，分数=1
+			if !isFoundElement {
+				messageListScore = append(messageListScore, scoreMsg{score: 1, msg: data.data})
+			}
+
+			fmt.Println("完成", routineIndex, "/", cmdConfig.loop, "全部|", isFoundElementToString(isFoundElement), data.data)
 		}
 		routineIndex++
 	}
 	println(isNeedAddCommand)
+
+	var messageList []string
+	// 卸载分数外壳，同时以分数排序
+	slices.SortFunc(messageListScore, func(a, b scoreMsg) int {
+		return a.score - b.score
+	})
+	for _, obj := range messageListScore {
+		messageList = append(messageList, obj.msg)
+	}
 
 	msg, err := selectPrompt(messageList)
 	if err != nil {
