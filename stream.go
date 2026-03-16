@@ -19,7 +19,7 @@ func sendReqCore(sys, user string, cfg RemoteAPIConfig, isStreamMode bool) (stri
 		BaseURL: cfg.BASE_URL,
 	})
 	if err != nil {
-		log.Fatalln("创建 chat model 失败")
+		log.Println("创建 chat model 失败")
 		return "", err
 	}
 	messageList := []*schema.Message{
@@ -29,7 +29,7 @@ func sendReqCore(sys, user string, cfg RemoteAPIConfig, isStreamMode bool) (stri
 	if isStreamMode {
 		sr, err := chatModel.Stream(ctx, messageList)
 		if err != nil {
-			log.Fatalln("创建 stream 失败")
+			log.Println("创建 stream 失败")
 			return "", err
 		}
 		return reportStream(sr)
