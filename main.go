@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -68,6 +69,7 @@ func main() {
 	}()
 	routineIndex := 0
 	var messageListScore []scoreMsg
+	lengthStringSize := len(strconv.Itoa(cmdConfig.loop))
 	for data := range dataChan {
 		routineIndex++
 		if data.err != nil {
@@ -87,8 +89,9 @@ func main() {
 		if !isFoundElement {
 			messageListScore = append(messageListScore, scoreMsg{score: 1, msg: data.data})
 		}
-
-		fmt.Println("完成", routineIndex, "\t/", cmdConfig.loop, "全部|", isFoundElementToString(isFoundElement), data.data)
+		indexLength := len(strconv.Itoa(routineIndex))
+		nowIndexString := strings.Join([]string{strings.Repeat("0", lengthStringSize-indexLength), strconv.Itoa(routineIndex)}, "")
+		fmt.Println("完成", nowIndexString, "/", cmdConfig.loop, "全部|", isFoundElementToString(isFoundElement), data.data)
 
 	}
 	println(isNeedAddCommand)
