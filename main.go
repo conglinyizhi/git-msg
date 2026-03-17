@@ -12,6 +12,7 @@ import (
 
 	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/erikgeiser/promptkit/selection"
+	"github.com/google/uuid"
 )
 
 const appName = "git-msg"
@@ -160,8 +161,13 @@ func selectPrompt(list []string) (string, error) {
 // 当调用 LLM 接口后程序后处理报错时回退
 func afterRemoteCallRollback(msg []string) {
 	readySaveString := strings.Join(msg, "\n")
-	tmpFilePath := filepath.Join(os.TempDir(), "git-commit-latest.txt")
-	err := os.WriteFile(tmpFilePath, []byte(readySaveString), 0666)
+	uuid, err := uuid.NewRandom()
+	if err != nil {
+		log.Fatalln("[回退]失败，原因：", err, "\n遗言：\n", readySaveString)
+		return
+	}
+	tmpFilePath := filepath.Join(os.TempDir(), "git-commit_"+uuid.String()+".txt")
+	err = os.WriteFile(tmpFilePath, []byte(readySaveString), 0666)
 	if err != nil {
 		log.Fatalln("[回退]失败，原因：", err, "\n遗言：\n", readySaveString)
 		return
