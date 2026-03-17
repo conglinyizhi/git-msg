@@ -42,7 +42,7 @@ func main() {
 		log.Fatalln("获取差异信息失败，原因：", err)
 	}
 
-	messageListScore := newFunction(ctxConfig, diff)
+	messageListScore := startRoutine(ctxConfig, diff)
 
 	var messageList []string
 	// 卸载分数外壳，同时以分数排序
@@ -65,7 +65,7 @@ func main() {
 	}
 }
 
-func newFunction(ctxConfig Config, diff string) []ScoreMsg {
+func startRoutine(ctxConfig Config, diff string) []ScoreMsg {
 	isFoundElementToString := func(isFound bool, nowIndexString string, loop int, msg string) string {
 		var str strings.Builder
 		str.WriteString("完成 ")
