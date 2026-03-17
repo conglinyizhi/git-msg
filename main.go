@@ -19,18 +19,21 @@ const appName = "git-msg"
 // 主函数
 func main() {
 
-	getCLIConfig := func() Config {
+	getCLIConfig := func() (Config, error) {
 		ctxConfig := parseCommandLineExData()
 		config, err := getConfigValue()
 		if err != nil {
-			log.Panic(err)
+			return Config{}, err
 		}
 		return Config{
 			api: config,
 			cmd: ctxConfig,
-		}
+		}, nil
 	}
-	ctxConfig := getCLIConfig()
+	ctxConfig, err := getCLIConfig()
+	if err != nil {
+		log.Panic(err)
+	}
 	if ctxConfig.cmd.init {
 		os.Exit(subcommand_Init())
 	}
