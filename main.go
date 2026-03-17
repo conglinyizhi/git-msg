@@ -18,13 +18,7 @@ const appName = "git-msg"
 
 // 主函数
 func main() {
-	isFoundElementToString := func(isFound bool) string {
-		if isFound {
-			return "分数增加:"
-		} else {
-			return "新增条目:"
-		}
-	}
+
 	getCLIConfig := func() Config {
 		ctxConfig := parseCommandLineExData()
 		config, err := getConfigValue()
@@ -48,6 +42,52 @@ func main() {
 		log.Fatalln("获取差异信息失败，原因：", err)
 	}
 
+	messageListScore := newFunction(ctxConfig, diff)
+
+	var messageList []string
+	// 卸载分数外壳，同时以分数排序
+	slices.SortFunc(messageListScore, func(a, b ScoreMsg) int {
+		return b.score - a.score
+	})
+	for _, obj := range messageListScore {
+		messageList = append(messageList, obj.msg)
+	}
+
+	msg, err := selectPrompt(messageList)
+	if err != nil {
+		afterRemoteCallRollback(messageList)
+		log.Fatalln("选择提交消息时出现了问题，详情：", err)
+	}
+	err = callcmd(ctxConfig, msg, isNeedAddCommand)
+	if err != nil {
+		afterRemoteCallRollback(messageList)
+		log.Fatalln("运行指令的过程中出现错误，详情：", err)
+	}
+}
+
+func newFunction(ctxConfig Config, diff string) []ScoreMsg {
+	isFoundElementToString := func(isFound bool, nowIndexString string, loop int, msg string) string {
+		var str strings.Builder
+		str.WriteString("完成")
+		str.WriteString(nowIndexString)
+		str.WriteString("/")
+		str.WriteString(strconv.Itoa(loop))
+		str.WriteString("全部|")
+		if isFound {
+			str.WriteString("分数增加:")
+		} else {
+			str.WriteString("新增条目:")
+		}
+		str.WriteString(msg)
+		return str.String()
+	}
+	padLeadingZero := func(routineIndex int, lengthStringSize int) string {
+		var str strings.Builder
+		indexLength := len(strconv.Itoa(routineIndex))
+		str.WriteString(strings.Repeat("0", lengthStringSize-indexLength))
+		str.WriteString(strconv.Itoa(routineIndex))
+		return str.String()
+	}
 	pText := getPromptMain()
 
 	var reqWaitGroup sync.WaitGroup
@@ -76,6 +116,7 @@ func main() {
 	lengthStringSize := len(strconv.Itoa(ctxConfig.cmd.loop))
 	for data := range dataChan {
 		routineIndex++
+		commitMessageText := data.data
 		if data.err != nil {
 			log.Println("好像哪儿出问题了：", data.err)
 			continue
@@ -83,7 +124,7 @@ func main() {
 		// 如果找到相通条目，分数+1
 		isFoundElement := false
 		for index, el := range messageListScore {
-			if el.msg == data.data {
+			if el.msg == commitMessageText {
 				messageListScore[index].score++
 				isFoundElement = true
 				break
@@ -91,33 +132,12 @@ func main() {
 		}
 		// 如果没有找到相同项目，新建条目，分数=1
 		if !isFoundElement {
-			messageListScore = append(messageListScore, ScoreMsg{score: 1, msg: data.data})
+			messageListScore = append(messageListScore, ScoreMsg{score: 1, msg: commitMessageText})
 		}
-		indexLength := len(strconv.Itoa(routineIndex))
-		nowIndexString := strings.Join([]string{strings.Repeat("0", lengthStringSize-indexLength), strconv.Itoa(routineIndex)}, "")
-		fmt.Println("完成", nowIndexString, "/", ctxConfig.cmd.loop, "全部|", isFoundElementToString(isFoundElement), data.data)
-
+		nowIndexString := padLeadingZero(routineIndex, lengthStringSize)
+		fmt.Println(isFoundElementToString(isFoundElement, nowIndexString, ctxConfig.cmd.loop, commitMessageText))
 	}
-
-	var messageList []string
-	// 卸载分数外壳，同时以分数排序
-	slices.SortFunc(messageListScore, func(a, b ScoreMsg) int {
-		return b.score - a.score
-	})
-	for _, obj := range messageListScore {
-		messageList = append(messageList, obj.msg)
-	}
-
-	msg, err := selectPrompt(messageList)
-	if err != nil {
-		afterRemoteCallRollback(messageList)
-		log.Fatalln("选择提交消息时出现了问题，详情：", err)
-	}
-	err = callcmd(ctxConfig, msg, isNeedAddCommand)
-	if err != nil {
-		afterRemoteCallRollback(messageList)
-		log.Fatalln("运行指令的过程中出现错误，详情：", err)
-	}
+	return messageListScore
 }
 
 func selectPrompt(list []string) (string, error) {
