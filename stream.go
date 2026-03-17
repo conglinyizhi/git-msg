@@ -11,12 +11,12 @@ import (
 	"github.com/cloudwego/eino/schema"
 )
 
-func sendReqCore(sys, user string, cfg RemoteAPIConfig, isStreamMode bool) (string, error) {
+func sendReqCore(sys, user string, cfg Config, isStreamMode bool) (string, error) {
 	ctx := context.Background()
 	chatModel, err := openai.NewChatModel(ctx, &openai.ChatModelConfig{
-		Model:   cfg.MODEL_NAME,
-		APIKey:  cfg.API_KEY,
-		BaseURL: cfg.BASE_URL,
+		Model:   cfg.api.MODEL_NAME,
+		APIKey:  cfg.api.API_KEY,
+		BaseURL: cfg.api.BASE_URL,
 	})
 	if err != nil {
 		log.Println("创建 chat model 失败")

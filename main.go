@@ -25,20 +25,25 @@ func main() {
 			return "新增条目:"
 		}
 	}
-	cmdConfig := parseCommandLineExData()
-	if cmdConfig.init {
+	getCLIConfig := func() Config {
+		ctxConfig := parseCommandLineExData()
+		config, err := getConfigValue()
+		if err != nil {
+			log.Panic(err)
+		}
+		return Config{
+			api: config,
+			cmd: ctxConfig,
+		}
+	}
+	ctxConfig := getCLIConfig()
+	if ctxConfig.cmd.init {
 		os.Exit(subcommand_Init())
 	}
-	config, err := getConfigValue()
-	if cmdConfig.ping {
-		os.Exit(subCommand_Ping(config))
+	if ctxConfig.cmd.ping {
+		os.Exit(subCommand_Ping(ctxConfig))
 	}
-
-	if err != nil {
-		log.Fatalln("获取大模型配置信息失败：", err)
-	}
-
-	diff, isNeedAddCommand, err := getDiff(cmdConfig)
+	diff, isNeedAddCommand, err := getDiff(ctxConfig.cmd)
 	if err != nil {
 		log.Fatalln("获取差异信息失败，原因：", err)
 	}
@@ -46,13 +51,13 @@ func main() {
 	pText := getPromptMain()
 
 	var reqWaitGroup sync.WaitGroup
-	reqWaitGroup.Add(cmdConfig.loop)
-	dataChan := make(chan ChanResult[string], cmdConfig.loop)
+	reqWaitGroup.Add(ctxConfig.cmd.loop)
+	dataChan := make(chan ChanResult[string], ctxConfig.cmd.loop)
 
-	for i := 0; i < cmdConfig.loop; i++ {
+	for i := 0; i < ctxConfig.cmd.loop; i++ {
 		go func(routineId int) {
 			defer reqWaitGroup.Done()
-			commitMessage, err := sendReqCore(pText, diff, config, false)
+			commitMessage, err := sendReqCore(pText, diff, ctxConfig, false)
 			if err != nil {
 				dataChan <- ChanResult[string]{data: "", err: err, index: routineId}
 			} else {
@@ -68,7 +73,7 @@ func main() {
 	}()
 	routineIndex := 0
 	var messageListScore []ScoreMsg
-	lengthStringSize := len(strconv.Itoa(cmdConfig.loop))
+	lengthStringSize := len(strconv.Itoa(ctxConfig.cmd.loop))
 	for data := range dataChan {
 		routineIndex++
 		if data.err != nil {
@@ -90,7 +95,7 @@ func main() {
 		}
 		indexLength := len(strconv.Itoa(routineIndex))
 		nowIndexString := strings.Join([]string{strings.Repeat("0", lengthStringSize-indexLength), strconv.Itoa(routineIndex)}, "")
-		fmt.Println("完成", nowIndexString, "/", cmdConfig.loop, "全部|", isFoundElementToString(isFoundElement), data.data)
+		fmt.Println("完成", nowIndexString, "/", ctxConfig.cmd.loop, "全部|", isFoundElementToString(isFoundElement), data.data)
 
 	}
 
@@ -108,7 +113,7 @@ func main() {
 		afterRemoteCallRollback(messageList)
 		log.Fatalln("选择提交消息时出现了问题，详情：", err)
 	}
-	err = callcmd(cmdConfig, msg, isNeedAddCommand)
+	err = callcmd(ctxConfig, msg, isNeedAddCommand)
 	if err != nil {
 		afterRemoteCallRollback(messageList)
 		log.Fatalln("运行指令的过程中出现错误，详情：", err)
@@ -141,7 +146,7 @@ func afterRemoteCallRollback(msg []string) {
 	fmt.Println("[回退]大模型输出结果将保存到", tmpFilePath)
 }
 
-func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error {
+func callcmd(cfg Config, commitMessage string, isNeedAdd bool) error {
 	// 询问用户是否提交，如果需要，则提交
 	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
 	if err != nil {
@@ -177,7 +182,7 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 			case exitSelectPromptItem:
 				return fmt.Errorf("用户选择退出")
 			case showGitStatusItem:
-				cmdResult, err := getStatus(cmd)
+				cmdResult, err := getStatus(cfg.cmd)
 				if err != nil {
 					return err
 				}
@@ -188,14 +193,14 @@ func callcmd(cmd CommandlineConfig, commitMessage string, isNeedAdd bool) error 
 	}
 
 	if goAdd {
-		stdout, err := runGitAdd(cmd)
+		stdout, err := runGitAdd(cfg.cmd)
 		if err != nil {
 			return err
 		}
 		printCommandOutput(stdout, "add")
 	}
 	if goCommit {
-		stdout, err := runGitCommit(cmd, commitMessage)
+		stdout, err := runGitCommit(cfg.cmd, commitMessage)
 		if err != nil {
 			return err
 		}

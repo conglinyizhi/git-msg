@@ -13,6 +13,11 @@ type CommandlineConfig struct {
 	ping bool
 }
 
+type Config struct {
+	cmd CommandlineConfig
+	api RemoteAPIConfig
+}
+
 type ChanResult[T any] struct {
 	data  T
 	err   error

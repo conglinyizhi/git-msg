@@ -47,7 +47,7 @@ func subcommand_Init() int {
 	return 0
 }
 
-func subCommand_Ping(cfg RemoteAPIConfig) int {
+func subCommand_Ping(cfg Config) int {
 	const testTitle = "测试"
 	const testUser = "请返回且只返回OK"
 	if str, err := sendReqCore(testTitle, testUser, cfg, false); err != nil {
