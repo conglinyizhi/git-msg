@@ -36,7 +36,11 @@ func main() {
 		log.Panic(err)
 	}
 	if ctxConfig.cmd.init {
-		os.Exit(subcommand_Init())
+		exitCode, err := subcommand_Init()
+		if err != nil {
+			log.Fatalln(err)
+		}
+		os.Exit(exitCode)
 	}
 	if ctxConfig.cmd.ping {
 		os.Exit(subCommand_Ping(ctxConfig))
@@ -59,12 +63,16 @@ func main() {
 
 	msg, err := selectPrompt(messageList)
 	if err != nil {
-		afterRemoteCallRollback(messageList)
+		if rollbackErr := afterRemoteCallRollback(messageList); rollbackErr != nil {
+			log.Println("回退操作失败:", rollbackErr)
+		}
 		log.Fatalln("选择提交消息时出现了问题，详情：", err)
 	}
 	err = callcmd(ctxConfig, msg, isNeedAddCommand)
 	if err != nil {
-		afterRemoteCallRollback(messageList)
+		if rollbackErr := afterRemoteCallRollback(messageList); rollbackErr != nil {
+			log.Println("回退操作失败:", rollbackErr)
+		}
 		log.Fatalln("运行指令的过程中出现错误，详情：", err)
 	}
 }
@@ -159,28 +167,26 @@ func selectPrompt(list []string) (string, error) {
 }
 
 // 当调用 LLM 接口后程序后处理报错时回退
-func afterRemoteCallRollback(msg []string) {
+func afterRemoteCallRollback(msg []string) error {
 	readySaveString := strings.Join(msg, "\n")
 	uuid, err := uuid.NewRandom()
 	if err != nil {
-		log.Fatalln("[回退]失败，原因：", err, "\n遗言：\n", readySaveString)
-		return
+		return fmt.Errorf("[回退]生成UUID失败，原因：%w\n遗言：\n%s", err, readySaveString)
 	}
 	tmpFilePath := filepath.Join(os.TempDir(), "git-commit_"+uuid.String()+".txt")
 	err = os.WriteFile(tmpFilePath, []byte(readySaveString), 0666)
 	if err != nil {
-		log.Fatalln("[回退]失败，原因：", err, "\n遗言：\n", readySaveString)
-		return
+		return fmt.Errorf("[回退]写入文件失败，原因：%w\n遗言：\n%s", err, readySaveString)
 	}
 	fmt.Println("[回退]大模型输出结果将保存到", tmpFilePath)
+	return nil
 }
 
 func callcmd(cfg Config, commitMessage string, isNeedAdd bool) error {
 	// 询问用户是否提交，如果需要，则提交
 	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
 	if err != nil {
-		log.Fatalln("交互命令出现异常")
-		return err
+		return fmt.Errorf("交互命令出现异常: %w", err)
 	}
 	if !goCommit {
 		return fmt.Errorf("用户取消提交")
@@ -198,8 +204,7 @@ func callcmd(cfg Config, commitMessage string, isNeedAdd bool) error {
 		for {
 			spResult, err := selectPrompt.RunPrompt()
 			if err != nil {
-				log.Fatalln("交互命令出现异常")
-				return err
+				return fmt.Errorf("交互命令出现异常: %w", err)
 			}
 			switch spResult {
 			case YesItem:

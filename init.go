@@ -14,11 +14,10 @@ import (
 //go:embed skill/*
 var skillFilesEmbed embed.FS
 
-func subcommand_Init() int {
+func subcommand_Init() (int, error) {
 	rootDir, err := getConfigRootDir("")
 	if err != nil {
-		log.Fatalln("定位配置目录失败：", err)
-		return 1
+		return 1, fmt.Errorf("定位配置目录失败：%w", err)
 	}
 	errChan := make(chan error, 2)
 	var wg sync.WaitGroup
@@ -44,7 +43,7 @@ func subcommand_Init() int {
 	for err := range errChan {
 		log.Println(err) // 可以根据需求选择是否终止程序
 	}
-	return 0
+	return 0, nil
 }
 
 func subCommand_Ping(cfg Config) int {
