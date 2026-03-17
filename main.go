@@ -68,15 +68,15 @@ func main() {
 func newFunction(ctxConfig Config, diff string) []ScoreMsg {
 	isFoundElementToString := func(isFound bool, nowIndexString string, loop int, msg string) string {
 		var str strings.Builder
-		str.WriteString("完成")
+		str.WriteString("完成 ")
 		str.WriteString(nowIndexString)
-		str.WriteString("/")
+		str.WriteString(" / ")
 		str.WriteString(strconv.Itoa(loop))
-		str.WriteString("全部|")
+		str.WriteString(" 全部| ")
 		if isFound {
-			str.WriteString("分数增加:")
+			str.WriteString(" 分数增加: ")
 		} else {
-			str.WriteString("新增条目:")
+			str.WriteString(" 新增条目: ")
 		}
 		str.WriteString(msg)
 		return str.String()
