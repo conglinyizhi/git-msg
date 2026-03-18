@@ -31,6 +31,10 @@ go build -o git-msg
 
 Place the generated `git-msg` binary in your `PATH`, e.g., `~/.local/bin`.
 
+```bash
+install -Dm755 git-msg ~/.local/bin/
+```
+
 ## ⚙️ Configuration
 
 `git-msg` requires configuration of the large model's API information. There are two ways to configure it (in order of priority, highest first):

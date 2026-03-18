@@ -31,6 +31,10 @@ go build -o git-msg
 
 将生成的 `git-msg` 二进制文件放到 `PATH` 下，例如 `~/.local/bin`。
 
+```bash
+install -Dm755 git-msg ~/.local/bin/
+```
+
 ## ⚙️ 配置
 
 `git-msg` 需要配置大模型的 API 信息。配置方式有两种（按优先级从高到低）：
