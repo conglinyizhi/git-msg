@@ -2,6 +2,8 @@
 
 [English](README.md) | [简体中文](README.zh_cn.md)
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/conglinyizhi/git-msg)
+
 `git-msg` is a Git helper tool.
 
 Its main function is to automatically generate commit messages that conform to the [Conventional Commits](https://www.conventionalcommits.org/) specification, complete with appropriate emojis, by analyzing the current repository's diff and calling a large model API. It supports interactive confirmation, staging area management, and custom prompt templates.
