@@ -1,4 +1,6 @@
-package main
+package types
+
+const AppName = "git-msg"
 
 type RemoteAPIConfig struct {
 	API_KEY    string
@@ -7,24 +9,24 @@ type RemoteAPIConfig struct {
 }
 
 type CommandlineConfig struct {
-	git  string
-	loop int
-	init bool
-	ping bool
+	Git  string
+	Loop int
+	Init bool
+	Ping bool
 }
 
 type Config struct {
-	cmd CommandlineConfig
-	api RemoteAPIConfig
+	Cmd CommandlineConfig
+	Api RemoteAPIConfig
 }
 
 type ChanResult[T any] struct {
-	data  T
-	err   error
-	index int
+	Data  T
+	Err   error
+	Index int
 }
 
 type ScoreMsg struct {
-	msg   string
-	score int
+	Msg   string
+	Score int
 }

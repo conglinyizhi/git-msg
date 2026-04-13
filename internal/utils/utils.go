@@ -1,21 +1,22 @@
-package main
+package utils
 
 import (
 	"fmt"
+	"gitmsg/internal/types"
 	"os"
 	"os/user"
 	"path/filepath"
 	"runtime"
 )
 
-// readfileToString 读取文件内容并返回字符串
-func readfileToString(filename string) (string, error) {
+// ReadfileToString 读取文件内容并返回字符串
+func ReadfileToString(filename string) (string, error) {
 	data, err := os.ReadFile(filename)
 	return string(data), err
 }
 
-// printCommandOutput 格式化打印命令执行结果
-func printCommandOutput(stdout string, command string) {
+// PrintCommandOutput 格式化打印命令执行结果
+func PrintCommandOutput(stdout string, command string) {
 	const printLine = "---"
 	if len(stdout) < 1 {
 		fmt.Println(command + " 执行完成，空输出")
@@ -25,8 +26,8 @@ func printCommandOutput(stdout string, command string) {
 	}
 }
 
-// getConfigRootDir 获取系统规范的软件配置目录
-func getConfigRootDir(fp string) (string, error) {
+// GetConfigRootDir 获取系统规范的软件配置目录
+func GetConfigRootDir(fp string) (string, error) {
 	usr, err := user.Current()
 	if err != nil {
 		return "", err
@@ -37,10 +38,10 @@ func getConfigRootDir(fp string) (string, error) {
 		if localAppData == "" {
 			localAppData = filepath.Join(usr.HomeDir, "AppData", "Local")
 		}
-		return filepath.Join(localAppData, appName, "Config", fp), nil
+		return filepath.Join(localAppData, types.AppName, "Config", fp), nil
 	case "darwin":
-		return filepath.Join(usr.HomeDir, "Library", "Preferences", appName, fp), nil
+		return filepath.Join(usr.HomeDir, "Library", "Preferences", types.AppName, fp), nil
 	}
 	// Linux 和其他系统
-	return filepath.Join(usr.HomeDir, ".config", appName, fp), nil
+	return filepath.Join(usr.HomeDir, ".config", types.AppName, fp), nil
 }

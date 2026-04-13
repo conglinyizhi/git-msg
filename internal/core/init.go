@@ -1,9 +1,12 @@
-package main
+package core
 
 import (
-	"embed"
 	"errors"
 	"fmt"
+	"gitmsg/embed"
+	"gitmsg/internal/config"
+	"gitmsg/internal/types"
+	"gitmsg/internal/utils"
 	"log"
 	"os"
 	"path/filepath"
@@ -11,11 +14,8 @@ import (
 	"syscall"
 )
 
-//go:embed skill/*
-var skillFilesEmbed embed.FS
-
 func subcommand_Init() (int, error) {
-	rootDir, err := getConfigRootDir("")
+	rootDir, err := utils.GetConfigRootDir("")
 	if err != nil {
 		return 1, fmt.Errorf("定位配置目录失败：%w", err)
 	}
@@ -46,7 +46,7 @@ func subcommand_Init() (int, error) {
 	return 0, nil
 }
 
-func subCommand_Ping(cfg Config) int {
+func subCommand_Ping(cfg types.Config) int {
 	const testTitle = "测试"
 	const testUser = "请返回且只返回OK"
 	if str, err := sendReqCore(testTitle, testUser, cfg, false); err != nil {
@@ -62,7 +62,7 @@ func initConfigDir(rootDir string) error {
 	if err := os.MkdirAll(filepath.Join(rootDir), 0755); err != nil {
 		return err
 	}
-	if err := initNewTomlFile(RemoteAPIConfig{}); err != nil {
+	if err := config.InitNewTomlFile(types.RemoteAPIConfig{}); err != nil {
 		return err
 	}
 	return nil
@@ -73,7 +73,7 @@ func initSkillDir(rootDir string) error {
 	if err := os.MkdirAll(filepath.Join(rootDir, skillPath), 0755); err != nil {
 		return err
 	}
-	skillFiles, err := skillFilesEmbed.ReadDir(skillPath)
+	skillFiles, err := embed.SkillFilesEmbed.ReadDir(skillPath)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func initSkillDir(rootDir string) error {
 		if skill.IsDir() {
 			continue
 		}
-		data, err := skillFilesEmbed.ReadFile(filepath.Join("skill", skill.Name()))
+		data, err := embed.SkillFilesEmbed.ReadFile(filepath.Join("skill", skill.Name()))
 		if err != nil {
 			log.Println("提取" + copyTarget + "失败（读取文件出错），原因：" + err.Error())
 			continue

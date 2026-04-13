@@ -1,6 +1,7 @@
-package main
+package core
 
 import (
+	"gitmsg/internal/utils"
 	"log"
 	"os"
 	"path/filepath"
@@ -22,7 +23,7 @@ func genErrorAndUseDefaultPrompt(errMsg string, e error) string {
 
 // LLM 提示词
 func getPromptMain() string {
-	skillDir, err := getConfigRootDir("./skill")
+	skillDir, err := utils.GetConfigRootDir("./skill")
 	if err != nil {
 		return genErrorAndUseDefaultPrompt("定位 skill 目录", err)
 	}
@@ -48,7 +49,7 @@ func selectSkillFile(skillDir, skillFileBody string, skillFileNames []string) st
 	sp.PageSize = 10
 	spResult, err := sp.RunPrompt()
 	fullPath := filepath.Join(skillDir, spResult)
-	skillFileBody, err = readfileToString(fullPath)
+	skillFileBody, err = utils.ReadfileToString(fullPath)
 	if err != nil {
 		return genErrorAndUseDefaultPrompt("读取"+fullPath+"文件", err)
 	}
@@ -56,12 +57,12 @@ func selectSkillFile(skillDir, skillFileBody string, skillFileNames []string) st
 }
 
 func tryReadSkillFile(skillFileName []string) string {
-	skillDir, err := getConfigRootDir("./skill")
+	skillDir, err := utils.GetConfigRootDir("./skill")
 	if err != nil {
 		return genErrorAndUseDefaultPrompt("定位 skill 目录", err)
 	}
 	oneFileName := skillFileName[0]
-	skillFileBody, err := readfileToString(filepath.Join(skillDir, oneFileName))
+	skillFileBody, err := utils.ReadfileToString(filepath.Join(skillDir, oneFileName))
 	if err != nil {
 		return genErrorAndUseDefaultPrompt("读取文件", err)
 	}

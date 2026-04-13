@@ -1,8 +1,9 @@
-package main
+package core
 
 import (
 	"context"
 	"fmt"
+	"gitmsg/internal/types"
 	"io"
 	"log"
 	"strings"
@@ -11,12 +12,12 @@ import (
 	"github.com/cloudwego/eino/schema"
 )
 
-func sendReqCore(sys, user string, cfg Config, isStreamMode bool) (string, error) {
+func sendReqCore(sys, user string, cfg types.Config, isStreamMode bool) (string, error) {
 	ctx := context.Background()
 	chatModel, err := openai.NewChatModel(ctx, &openai.ChatModelConfig{
-		Model:   cfg.api.MODEL_NAME,
-		APIKey:  cfg.api.API_KEY,
-		BaseURL: cfg.api.BASE_URL,
+		Model:   cfg.Api.MODEL_NAME,
+		APIKey:  cfg.Api.API_KEY,
+		BaseURL: cfg.Api.BASE_URL,
 	})
 	if err != nil {
 		log.Println("创建 chat model 失败")

@@ -1,8 +1,10 @@
-package main
+package config
 
 import (
 	"errors"
 	"fmt"
+	"gitmsg/internal/types"
+	"gitmsg/internal/utils"
 	"log"
 	"os"
 	"path/filepath"
@@ -18,16 +20,16 @@ func errorMessageBuild(message string) error {
 }
 
 // 获取配置文件 - toml
-func getConfigValue() (RemoteAPIConfig, error) {
-	config := RemoteAPIConfig{}
-	configPath, err := getConfigRootDir("llm.toml")
+func GetConfigValue() (types.RemoteAPIConfig, error) {
+	config := types.RemoteAPIConfig{}
+	configPath, err := utils.GetConfigRootDir("llm.toml")
 	if err != nil {
 		return config, fmt.Errorf("定位配置文件路径错误:%w", err)
 	}
 	tomlConfigBody, err := os.ReadFile(configPath)
 	if err != nil {
 		fmt.Println("未能成功读取预期在 " + configPath + " 的配置文件，尝试读取环境变量……")
-		initNewTomlFileIfNeed(err, config)
+		InitNewTomlFileIfNeed(err, config)
 		return tryReadEnv()
 	}
 	err = toml.Unmarshal(tomlConfigBody, &config)
@@ -41,8 +43,8 @@ func getConfigValue() (RemoteAPIConfig, error) {
 	return config, nil
 }
 
-func initNewTomlFile(config RemoteAPIConfig) error {
-	configRootDir, err := getConfigRootDir("")
+func InitNewTomlFile(config types.RemoteAPIConfig) error {
+	configRootDir, err := utils.GetConfigRootDir("")
 	if err != nil {
 		return fmt.Errorf("定位配置文件路径错误: %w", err)
 	}
@@ -73,16 +75,16 @@ func initNewTomlFile(config RemoteAPIConfig) error {
 }
 
 // 判断错误是 syscall.ENOENT (文件不存在) 就尝试创建文件
-func initNewTomlFileIfNeed(err error, cfg RemoteAPIConfig) error {
+func InitNewTomlFileIfNeed(err error, cfg types.RemoteAPIConfig) error {
 	if !errors.Is(err, syscall.ENOENT) {
 		return nil
 	}
-	return initNewTomlFile(cfg)
+	return InitNewTomlFile(cfg)
 }
 
 // 回退 - 使用系统变量
-func tryReadEnv() (RemoteAPIConfig, error) {
-	config := RemoteAPIConfig{}
+func tryReadEnv() (types.RemoteAPIConfig, error) {
+	config := types.RemoteAPIConfig{}
 	if err := godotenv.Load(); err != nil {
 		return config, err
 	}
@@ -97,7 +99,7 @@ func tryReadEnv() (RemoteAPIConfig, error) {
 }
 
 // 检查必填数据
-func checkValue(cfg RemoteAPIConfig) error {
+func checkValue(cfg types.RemoteAPIConfig) error {
 	if cfg.API_KEY == "" {
 		return errorMessageBuild("API_KEY")
 	}
