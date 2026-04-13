@@ -19,17 +19,16 @@ import (
 )
 
 // 主函数
-func BootloaderMain() {
+func BootloaderMain(cmd *types.CommandlineConfig) {
 
 	getCLIConfig := func() (types.Config, error) {
-		ctxConfig := ParseCommandLineExData()
 		config, err := config.GetConfigValue()
 		if err != nil {
 			return types.Config{}, err
 		}
 		return types.Config{
 			Api: config,
-			Cmd: ctxConfig,
+			Cmd: *cmd,
 		}, nil
 	}
 	ctxConfig, err := getCLIConfig()
