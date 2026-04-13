@@ -11,14 +11,8 @@ import (
 // rootCmd 表示在没有子命令时调用的基础命令
 var rootCmd = &cobra.Command{
 	Use:   "gitmsg",
-	Short: "你的应用的简短描述",
-	Long: `一个更长的描述，可以跨越多行，并且可能包含
-使用你的应用的示例和用法。例如：
-
-Cobra 是一个用于 Go 的 CLI 库，可以增强应用的能力。
-这个应用是一个工具，用于生成所需的文件
-以快速创建一个 Cobra 应用。`,
-	// 如果你的裸应用有关联的操作，请取消下面这行的注释：
+	Short: "一个 git 消息辅助工具",
+	Long:  `可以使用这个应用辅助生成 git commit message，其他功能尚待开发`,
 	Run: func(cmd *cobra.Command, args []string) {
 		core.BootloaderMain()
 	},
