@@ -68,7 +68,11 @@ func BootloaderMain(cmd *types.CommandlineConfig) {
 		}
 		log.Fatalln("选择提交消息时出现了问题，详情：", err)
 	}
-	err = tui.CallCmd(ctxConfig, msg, isNeedAddCommand)
+	messageObject := types.CommitMessageObject{
+		Description: msg,
+		Body:        cmd.Note,
+	}
+	err = tui.CallCmd(ctxConfig, messageObject, isNeedAddCommand)
 	if err != nil {
 		if rollbackErr := afterRemoteCallRollback(messageList); rollbackErr != nil {
 			log.Println("回退操作失败:", rollbackErr)

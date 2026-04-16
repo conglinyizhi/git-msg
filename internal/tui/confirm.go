@@ -10,7 +10,7 @@ import (
 	"github.com/erikgeiser/promptkit/selection"
 )
 
-func CallCmd(cfg types.Config, commitMessage string, isNeedAdd bool) error {
+func CallCmd(cfg types.Config, commitMessage types.CommitMessageObject, isNeedAdd bool) error {
 	// 询问用户是否提交，如果需要，则提交
 	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
 	if err != nil {
