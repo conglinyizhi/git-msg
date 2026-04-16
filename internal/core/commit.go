@@ -35,9 +35,6 @@ func CommitMain(cmd *types.CommandlineConfig) {
 	if err != nil {
 		log.Panic(err)
 	}
-	if ctxConfig.Cmd.Ping {
-		os.Exit(subCommand_Ping(ctxConfig))
-	}
 	diff, isNeedAddCommand, err := git.GetDiff(ctxConfig.Cmd)
 	if err != nil {
 		log.Fatalln("获取差异信息失败，原因：", err)
