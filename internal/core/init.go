@@ -23,16 +23,10 @@ func subcommand_Init() (int, error) {
 	}
 	var group errgroup.Group
 	group.Go(func() error {
-		if err := initConfigDir(rootDir); err != nil {
-			return fmt.Errorf("初始化配置目录失败：%w", err)
-		}
-		return nil
+		return initConfigDir(rootDir)
 	})
 	group.Go(func() error {
-		if err := initSkillDir(rootDir); err != nil {
-			return fmt.Errorf("初始化技能目录失败：%w", err)
-		}
-		return nil
+		return initSkillDir(rootDir)
 	})
 
 	if err = group.Wait(); err != nil {
@@ -54,11 +48,11 @@ func subCommand_Ping(cfg types.Config) int {
 }
 
 func initConfigDir(rootDir string) error {
-	if err := os.MkdirAll(filepath.Join(rootDir), 0755); err != nil {
-		return err
+	if err := os.MkdirAll(rootDir, 0755); err != nil {
+		return fmt.Errorf("初始化环节，config(%s) 目录创建失败，原因：%w", rootDir, err)
 	}
 	if err := config.InitNewTomlFile(types.RemoteAPIConfig{}); err != nil {
-		return err
+		return fmt.Errorf("初始化环节，初始化 toml 文件失败，原因：%w", err)
 	}
 	return nil
 }
@@ -66,11 +60,11 @@ func initConfigDir(rootDir string) error {
 func initSkillDir(rootDir string) error {
 	const skillPath = "skill"
 	if err := os.MkdirAll(filepath.Join(rootDir, skillPath), 0755); err != nil {
-		return err
+		return fmt.Errorf("初始化：Skill 目录创建失败，原因：%w", err)
 	}
 	skillFiles, err := embed.SkillFilesEmbed.ReadDir(skillPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("初始化：Skill 目录读取嵌入文件失败，原因：%w", err)
 	}
 	for _, skill := range skillFiles {
 		copyTarget := filepath.Join(rootDir, skillPath, skill.Name())
