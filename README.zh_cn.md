@@ -13,17 +13,17 @@
 ## ✨ 特性
 
 - 自动获取 Git 工作区或暂存区的差异
-- 调用大模型（兼容 OpenAI API 格式）生成提交信息
-- 生成的提交信息格式：`<emoji> <type>(<scope>): <description>`（例如 `🔬 test(cli.go): 新增了命令行功能 -t 参数`）
+- 调用大模型（当前仅测试了兼容 OpenAI API 格式）生成提交信息
+- 生成的提交信息格式：`<emoji> <type>(<scope>): <description>`（例如 `test(cli.go): 新增了命令行功能 -t 参数`）
 - 交互式询问是否添加未暂存文件、是否提交
-- 支持自定义提示词（通过 `skill/` 目录下的 Markdown 文件）
-- 可指定自定义 Git 命令（如 `yadm`）
+- 支持自定义提示词（通过 `~/.config/git-msg/skill/` 目录下的 Markdown 文件）
+- 可指定自定义 Git 命令（为 `yadm` 等 Git link 也需要使用该工具提供的能力时）
 
 ## 📦 安装
 
 ### 从源码编译
 
-确保已安装 Go 1.18+，然后执行：
+确保已安装 Go 1.26+，然后执行：
 
 ```bash
 git clone https://github.com/conglinyizhi/git-msg.git
@@ -47,7 +47,7 @@ install -Dm755 git-msg ~/.local/bin/
    - macOS: `~/Library/Preferences/git-msg/llm.toml`
    - Windows: `%LOCALAPPDATA%\git-msg\Config\llm.toml`
 
-   您也可以使用 `--init` 开关来快速创建配置文件，同时会复制文件内预制的技能到指定的技能目录中。
+   您也可以使用 `git-msg init` 来快速创建配置文件，同时会复制文件内预制的技能到指定的技能目录中。
 
    文件内容示例：
 
@@ -92,14 +92,13 @@ git-msg
 
 - `-g, --git <command>`：指定 Git 命令路径或别名（默认 `git`），可用于替代为 `yadm` 等其他 Git 兼容工具。
 - `-l, --loop <number>`：同时发起多个请求（默认 1），生成多条提交信息供选择，方便挑选最合适的。
-- `--init`：尝试对当前版本的 git-msg 所需环境进行最大的初始化（创建配置目录和默认文件）。
 - `--ping`：尝试对配置中的远程大模型发起测试请求，使用最小提示词验证连接性。
 
 示例：
 
 ```bash
+git-msg init
 git-msg -g yadm
-git-msg --init
 git-msg -l 3  # 同时生成 3 条提交信息供选择
 ```
 
