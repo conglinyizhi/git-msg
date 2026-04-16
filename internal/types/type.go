@@ -31,9 +31,3 @@ type ScoreMsg struct {
 	Msg   string
 	Score int
 }
-
-// 提交消息时候塞两个变量
-type CommitMessageObject struct {
-	Description string
-	Body        string
-}
