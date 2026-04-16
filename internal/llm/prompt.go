@@ -1,4 +1,4 @@
-package core
+package llm
 
 import (
 	"gitmsg/internal/utils"
@@ -16,61 +16,61 @@ type & emoji 的关系是这样的：<emoji>test 🔬;style 🎨;chore 🧹;docs
 现在，请严格遵循模板内容完成变化总结，遵循上面提到的 emoji 列表，仅一行：	{{emoji}} <{{type}}>({{范围}}): {{描述}}
 <范例>🔬 test(cli.go): 新增了命令行功能 -t 参数，用于指定具体分类。</范例>`
 
-func genErrorAndUseDefaultPrompt(errMsg string, e error) string {
+func GenErrorAndUseDefaultPrompt(errMsg string, e error) string {
 	log.Println(errMsg, "失败，使用默认提示词", e)
 	return defaultPrompt
 }
 
 // LLM 提示词
-func getPromptMain() string {
+func GetPromptMain() string {
 	skillDir, err := utils.GetConfigRootDir("./skill")
 	if err != nil {
-		return genErrorAndUseDefaultPrompt("定位 skill 目录", err)
+		return GenErrorAndUseDefaultPrompt("定位 skill 目录", err)
 	}
 	pathFileList, err := os.ReadDir(skillDir)
 	if err != nil {
-		return genErrorAndUseDefaultPrompt("访问 skill 目录", err)
+		return GenErrorAndUseDefaultPrompt("访问 skill 目录", err)
 	}
-	skillFile, skillFileNames := getSkillFileList(pathFileList)
+	skillFile, skillFileNames := GetSkillFileList(pathFileList)
 	var skillFileBody string
 	skillFileLength := len(skillFile)
 	if skillFileLength == 0 {
-		return genErrorAndUseDefaultPrompt("查找有效 skill 文件", nil)
+		return GenErrorAndUseDefaultPrompt("查找有效 skill 文件", nil)
 	}
 	if skillFileLength == 1 {
-		return tryReadSkillFile(skillFileNames)
+		return TryReadSkillFile(skillFileNames)
 	}
-	skillFileBody = selectSkillFile(skillDir, skillFileBody, skillFileNames)
+	skillFileBody = SelectSkillFile(skillDir, skillFileBody, skillFileNames)
 	return skillFileBody
 }
 
-func selectSkillFile(skillDir, skillFileBody string, skillFileNames []string) string {
+func SelectSkillFile(skillDir, skillFileBody string, skillFileNames []string) string {
 	sp := selection.New("请选择要执行的 System Prompt", skillFileNames)
 	sp.PageSize = 10
 	spResult, err := sp.RunPrompt()
 	fullPath := filepath.Join(skillDir, spResult)
 	skillFileBody, err = utils.ReadfileToString(fullPath)
 	if err != nil {
-		return genErrorAndUseDefaultPrompt("读取"+fullPath+"文件", err)
+		return GenErrorAndUseDefaultPrompt("读取"+fullPath+"文件", err)
 	}
 	return skillFileBody
 }
 
-func tryReadSkillFile(skillFileName []string) string {
+func TryReadSkillFile(skillFileName []string) string {
 	skillDir, err := utils.GetConfigRootDir("./skill")
 	if err != nil {
-		return genErrorAndUseDefaultPrompt("定位 skill 目录", err)
+		return GenErrorAndUseDefaultPrompt("定位 skill 目录", err)
 	}
 	oneFileName := skillFileName[0]
 	skillFileBody, err := utils.ReadfileToString(filepath.Join(skillDir, oneFileName))
 	if err != nil {
-		return genErrorAndUseDefaultPrompt("读取文件", err)
+		return GenErrorAndUseDefaultPrompt("读取文件", err)
 	}
 	return skillFileBody
 }
 
 // 获取所有的技能(skill)文件
-func getSkillFileList(pathFileList []os.DirEntry) ([]os.DirEntry, []string) {
+func GetSkillFileList(pathFileList []os.DirEntry) ([]os.DirEntry, []string) {
 	isMarkdownByFileExt := func(file os.DirEntry) bool {
 		fileName := file.Name()
 		nameArraySplitDot := strings.Split(fileName, ".")

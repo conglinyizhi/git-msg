@@ -3,8 +3,10 @@ package core
 import (
 	"fmt"
 	"gitmsg/internal/config"
+	"gitmsg/internal/git"
+	"gitmsg/internal/llm"
+	"gitmsg/internal/tui"
 	"gitmsg/internal/types"
-	"gitmsg/internal/utils"
 	"log"
 	"os"
 	"path/filepath"
@@ -13,8 +15,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/erikgeiser/promptkit/confirmation"
-	"github.com/erikgeiser/promptkit/selection"
 	"github.com/google/uuid"
 )
 
@@ -45,7 +45,7 @@ func BootloaderMain(cmd *types.CommandlineConfig) {
 	if ctxConfig.Cmd.Ping {
 		os.Exit(subCommand_Ping(ctxConfig))
 	}
-	diff, isNeedAddCommand, err := getDiff(ctxConfig.Cmd)
+	diff, isNeedAddCommand, err := git.GetDiff(ctxConfig.Cmd)
 	if err != nil {
 		log.Fatalln("获取差异信息失败，原因：", err)
 	}
@@ -61,14 +61,14 @@ func BootloaderMain(cmd *types.CommandlineConfig) {
 		messageList = append(messageList, obj.Msg)
 	}
 
-	msg, err := selectPrompt(messageList)
+	msg, err := tui.SelectPrompt(messageList)
 	if err != nil {
 		if rollbackErr := afterRemoteCallRollback(messageList); rollbackErr != nil {
 			log.Println("回退操作失败:", rollbackErr)
 		}
 		log.Fatalln("选择提交消息时出现了问题，详情：", err)
 	}
-	err = callcmd(ctxConfig, msg, isNeedAddCommand)
+	err = tui.CallCmd(ctxConfig, msg, isNeedAddCommand)
 	if err != nil {
 		if rollbackErr := afterRemoteCallRollback(messageList); rollbackErr != nil {
 			log.Println("回退操作失败:", rollbackErr)
@@ -100,7 +100,7 @@ func startRoutine(ctxConfig types.Config, diff string) []types.ScoreMsg {
 		str.WriteString(strconv.Itoa(routineIndex))
 		return str.String()
 	}
-	pText := getPromptMain()
+	pText := llm.GetPromptMain()
 
 	var reqWaitGroup sync.WaitGroup
 	reqWaitGroup.Add(ctxConfig.Cmd.Loop)
@@ -109,7 +109,7 @@ func startRoutine(ctxConfig types.Config, diff string) []types.ScoreMsg {
 	for i := 0; i < ctxConfig.Cmd.Loop; i++ {
 		go func(routineId int) {
 			defer reqWaitGroup.Done()
-			commitMessage, err := sendReqCore(pText, diff, ctxConfig, false)
+			commitMessage, err := llm.SendReqCore(pText, diff, ctxConfig, false)
 			if err != nil {
 				dataChan <- types.ChanResult[string]{Data: "", Err: err, Index: routineId}
 			} else {
@@ -152,20 +152,6 @@ func startRoutine(ctxConfig types.Config, diff string) []types.ScoreMsg {
 	return messageListScore
 }
 
-func selectPrompt(list []string) (string, error) {
-	const allNo = "都不行"
-	selectPrompt := selection.New("请选择提示词", append(list, allNo))
-	selectPrompt.PageSize = len(list) + 1
-	commitMsg, err := selectPrompt.RunPrompt()
-	if err != nil {
-		return "", err
-	}
-	if commitMsg == allNo {
-		return "", fmt.Errorf("用户取消提交")
-	}
-	return commitMsg, nil
-}
-
 // 当调用 LLM 接口后程序后处理报错时回退
 func afterRemoteCallRollback(msg []string) error {
 	readySaveString := strings.Join(msg, "\n")
@@ -179,66 +165,5 @@ func afterRemoteCallRollback(msg []string) error {
 		return fmt.Errorf("[回退]写入文件失败，原因：%w\n遗言：\n%s", err, readySaveString)
 	}
 	fmt.Println("[回退]大模型输出结果将保存到", tmpFilePath)
-	return nil
-}
-
-func callcmd(cfg types.Config, commitMessage string, isNeedAdd bool) error {
-	// 询问用户是否提交，如果需要，则提交
-	goCommit, err := confirmation.New("一切准备就绪，发起提交吗?", confirmation.Yes).RunPrompt()
-	if err != nil {
-		return fmt.Errorf("交互命令出现异常: %w", err)
-	}
-	if !goCommit {
-		return fmt.Errorf("用户取消提交")
-	}
-	// 是否需要添加文件到暂存区
-	var goAdd = false
-	const YesItem = "是(Yes)"
-	const NoItem = "否(No)"
-	const showGitStatusItem = "查看仓库状态"
-	const exitSelectPromptItem = "退出"
-	if isNeedAdd {
-		selectPrompt := selection.New("本次操作使用暂存区外的文件差异，先添加到暂存区然后提交吗？", []string{YesItem, NoItem, showGitStatusItem, exitSelectPromptItem})
-		selectPrompt.PageSize = 2
-	loop:
-		for {
-			spResult, err := selectPrompt.RunPrompt()
-			if err != nil {
-				return fmt.Errorf("交互命令出现异常: %w", err)
-			}
-			switch spResult {
-			case YesItem:
-				goAdd = true
-				break loop
-			case NoItem:
-				goAdd = false
-				break loop
-			case exitSelectPromptItem:
-				return fmt.Errorf("用户选择退出")
-			case showGitStatusItem:
-				cmdResult, err := getStatus(cfg.Cmd)
-				if err != nil {
-					return err
-				}
-				utils.PrintCommandOutput(cmdResult, "status -sb")
-				fmt.Println("*咳咳*，所以……")
-			}
-		}
-	}
-
-	if goAdd {
-		stdout, err := runGitAdd(cfg.Cmd)
-		if err != nil {
-			return err
-		}
-		utils.PrintCommandOutput(stdout, "add")
-	}
-	if goCommit {
-		stdout, err := runGitCommit(cfg.Cmd, commitMessage)
-		if err != nil {
-			return err
-		}
-		utils.PrintCommandOutput(stdout, "commit -m")
-	}
 	return nil
 }

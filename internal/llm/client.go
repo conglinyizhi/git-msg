@@ -1,4 +1,4 @@
-package core
+package llm
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"github.com/cloudwego/eino/schema"
 )
 
-func sendReqCore(sys, user string, cfg types.Config, isStreamMode bool) (string, error) {
+func SendReqCore(sys, user string, cfg types.Config, isStreamMode bool) (string, error) {
 	ctx := context.Background()
 	chatModel, err := openai.NewChatModel(ctx, &openai.ChatModelConfig{
 		Model:   cfg.Api.MODEL_NAME,
@@ -33,7 +33,7 @@ func sendReqCore(sys, user string, cfg types.Config, isStreamMode bool) (string,
 			log.Println("创建 stream 失败")
 			return "", err
 		}
-		return reportStream(sr)
+		return ReportStream(sr)
 	} else {
 		txt, err := chatModel.Generate(ctx, messageList)
 		if err != nil {
@@ -43,7 +43,7 @@ func sendReqCore(sys, user string, cfg types.Config, isStreamMode bool) (string,
 	}
 }
 
-func reportStream(sr *schema.StreamReader[*schema.Message]) (string, error) {
+func ReportStream(sr *schema.StreamReader[*schema.Message]) (string, error) {
 	defer sr.Close()
 	var strBuff strings.Builder
 	for {

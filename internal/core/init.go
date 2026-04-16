@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gitmsg/embed"
 	"gitmsg/internal/config"
+	"gitmsg/internal/llm"
 	"gitmsg/internal/types"
 	"gitmsg/internal/utils"
 	"log"
@@ -49,7 +50,7 @@ func subcommand_Init() (int, error) {
 func subCommand_Ping(cfg types.Config) int {
 	const testTitle = "测试"
 	const testUser = "请返回且只返回OK"
-	if str, err := sendReqCore(testTitle, testUser, cfg, false); err != nil {
+	if str, err := llm.SendReqCore(testTitle, testUser, cfg, false); err != nil {
 		fmt.Fprintln(os.Stdout, "测试失败：", err)
 		return 1
 	} else {
