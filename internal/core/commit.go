@@ -35,13 +35,14 @@ func CommitMain(cmd *types.CommandlineConfig) {
 	if err != nil {
 		log.Panic(err)
 	}
-	if ctxConfig.Cmd.Init {
-		exitCode, err := SubcommandInit()
-		if err != nil {
-			log.Fatalln(err)
-		}
-		os.Exit(exitCode)
-	}
+	// TODO: Remove this
+	// if ctxConfig.Cmd.Init {
+	// 	exitCode, err := SubcommandInit()
+	// 	if err != nil {
+	// 		log.Fatalln(err)
+	// 	}
+	// 	os.Exit(exitCode)
+	// }
 	if ctxConfig.Cmd.Ping {
 		os.Exit(subCommand_Ping(ctxConfig))
 	}

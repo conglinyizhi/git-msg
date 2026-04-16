@@ -1,9 +1,7 @@
 package cmd
 
 import (
-	"fmt"
 	"gitmsg/internal/core"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -13,13 +11,8 @@ var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "初始化项目配置",
 	Long:  `将内嵌的 markdown 文件和 llm 配置初始化放到配置目录中`,
-	Run: func(cmd *cobra.Command, args []string) {
-		if runInt, err := core.SubcommandInit(); err != nil {
-			fmt.Printf("init 子指令报错：%e", err)
-			os.Exit(runInt)
-		} else {
-			os.Exit(0)
-		}
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return core.SubcommandInit()
 	},
 }
 

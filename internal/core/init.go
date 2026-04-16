@@ -16,10 +16,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func SubcommandInit() (int, error) {
+func SubcommandInit() error {
 	rootDir, err := utils.GetConfigRootDir("")
 	if err != nil {
-		return 1, fmt.Errorf("定位配置目录失败：%w", err)
+		return fmt.Errorf("定位配置目录失败：%w", err)
 	}
 	var group errgroup.Group
 	group.Go(func() error {
@@ -30,9 +30,9 @@ func SubcommandInit() (int, error) {
 	})
 
 	if err = group.Wait(); err != nil {
-		return 1, err
+		return err
 	}
-	return 0, nil
+	return nil
 }
 
 func subCommand_Ping(cfg types.Config) int {
