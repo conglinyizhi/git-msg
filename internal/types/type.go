@@ -11,7 +11,6 @@ type RemoteAPIConfig struct {
 type CommandlineConfig struct {
 	Git  string
 	Loop int
-	Ping bool
 	Note string
 }
 
