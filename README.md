@@ -23,7 +23,7 @@ According to the library's documentation, the interactive interface may have iss
 
 ### Build from Source
 
-Ensure Go 1.18+ is installed, then execute:
+Ensure Go 1.26+ is installed, then execute:
 
 ```bash
 git clone https://github.com/conglinyizhi/git-msg.git
@@ -47,7 +47,7 @@ install -Dm755 git-msg ~/.local/bin/
    - macOS: `~/Library/Preferences/git-msg/llm.toml`
    - Windows: `%LOCALAPPDATA%\git-msg\Config\llm.toml`
 
-   You can also use the `--init` flag to quickly create the configuration file, which will also copy the built-in skills to the designated skill directory.
+   You can also use `git-msg init` to quickly create the configuration file, which will also copy the built-in skills to the designated skill directory.
 
    Example file content:
 
@@ -92,14 +92,13 @@ The tool will automatically perform the following steps:
 
 - `-g, --git <command>`: Specify the Git command path or alias (default `git`). Useful for replacing it with other Git-compatible tools like `yadm`.
 - `-l, --loop <number>`: Send multiple requests simultaneously (default 1) to generate multiple commit messages for selection, making it easier to choose the most appropriate one.
-- `--init`: Initialize the environment required for the current version of git-msg (creates configuration directories and default files).
 - `--ping`: Test the configured large model API with a minimal prompt to verify connectivity.
 
 Example:
 
 ```bash
+git-msg init
 git-msg -g yadm
-git-msg --init
 git-msg -l 3  # Generate 3 commit messages simultaneously for selection
 ```
 
