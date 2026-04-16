@@ -11,8 +11,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sync"
 	"syscall"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func subcommand_Init() (int, error) {
@@ -20,29 +21,22 @@ func subcommand_Init() (int, error) {
 	if err != nil {
 		return 1, fmt.Errorf("定位配置目录失败：%w", err)
 	}
-	errChan := make(chan error, 2)
-	var wg sync.WaitGroup
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
+	var group errgroup.Group
+	group.Go(func() error {
 		if err := initConfigDir(rootDir); err != nil {
-			errChan <- fmt.Errorf("初始化配置目录失败：%w", err)
+			return fmt.Errorf("初始化配置目录失败：%w", err)
 		}
-	}()
-	go func() {
-		defer wg.Done()
+		return nil
+	})
+	group.Go(func() error {
 		if err := initSkillDir(rootDir); err != nil {
-			errChan <- fmt.Errorf("初始化技能目录失败：%w", err)
+			return fmt.Errorf("初始化技能目录失败：%w", err)
 		}
-	}()
-	go func() {
-		wg.Wait()
-		close(errChan)
-	}()
+		return nil
+	})
 
-	// 遍历通道，处理所有错误
-	for err := range errChan {
-		log.Println(err) // 可以根据需求选择是否终止程序
+	if err = group.Wait(); err != nil {
+		return 1, err
 	}
 	return 0, nil
 }
