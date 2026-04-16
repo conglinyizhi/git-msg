@@ -16,7 +16,7 @@ var rootCmd = &cobra.Command{
 	Short: "一个 git 消息辅助工具",
 	Long:  `可以使用这个应用辅助生成 git commit message，其他功能尚待开发`,
 	Run: func(cmd *cobra.Command, args []string) {
-		core.BootloaderMain(&cmdConfig)
+		core.CommitMain(&cmdConfig)
 	},
 }
 

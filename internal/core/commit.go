@@ -19,7 +19,7 @@ import (
 )
 
 // 主函数
-func BootloaderMain(cmd *types.CommandlineConfig) {
+func CommitMain(cmd *types.CommandlineConfig) {
 
 	getCLIConfig := func() (types.Config, error) {
 		config, err := config.GetConfigValue()
