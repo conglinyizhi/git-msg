@@ -16,7 +16,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func subcommand_Init() (int, error) {
+func SubcommandInit() (int, error) {
 	rootDir, err := utils.GetConfigRootDir("")
 	if err != nil {
 		return 1, fmt.Errorf("定位配置目录失败：%w", err)

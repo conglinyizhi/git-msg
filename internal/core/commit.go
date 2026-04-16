@@ -36,7 +36,7 @@ func CommitMain(cmd *types.CommandlineConfig) {
 		log.Panic(err)
 	}
 	if ctxConfig.Cmd.Init {
-		exitCode, err := subcommand_Init()
+		exitCode, err := SubcommandInit()
 		if err != nil {
 			log.Fatalln(err)
 		}
