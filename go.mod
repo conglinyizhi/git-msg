@@ -1,6 +1,6 @@
 module gitmsg
 
-go 1.23.4
+go 1.25.0
 
 require github.com/erikgeiser/promptkit v0.9.0
 
@@ -59,7 +59,7 @@ require (
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/spf13/pflag v1.0.10
-	golang.org/x/sync v0.8.0 // indirect
+	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/term v0.11.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
