@@ -90,7 +90,11 @@ func startRoutine(ctxConfig types.Config, diff string) []types.ScoreMsg {
 		str.WriteString(strconv.Itoa(routineIndex))
 		return str.String()
 	}
-	pText := llm.GetPromptMain()
+	pText, err := llm.GetPromptMain()
+
+	if err != nil {
+		log.Panicln("获取提示词配置时出错", err)
+	}
 
 	var reqWaitGroup sync.WaitGroup
 	reqWaitGroup.Add(ctxConfig.Cmd.Loop)

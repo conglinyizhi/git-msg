@@ -1,12 +1,15 @@
 package llm
 
 import (
+	"errors"
+	"fmt"
 	"gitmsg/internal/utils"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/erikgeiser/promptkit"
 	"github.com/erikgeiser/promptkit/selection"
 )
 
@@ -16,13 +19,17 @@ type & emoji 的关系是这样的：<emoji>test 🔬;style 🎨;chore 🧹;docs
 现在，请严格遵循模板内容完成变化总结，遵循上面提到的 emoji 列表，仅一行：	{{emoji}} <{{type}}>({{范围}}): {{描述}}
 <范例>🔬 test(cli.go): 新增了命令行功能 -t 参数，用于指定具体分类。</范例>`
 
-func GenErrorAndUseDefaultPrompt(errMsg string, e error) string {
-	log.Println(errMsg, "失败，使用默认提示词", e)
-	return defaultPrompt
+func GenErrorAndUseDefaultPrompt(errMsg string, err error) (string, error) {
+	log.Println(errMsg, "失败，使用默认提示词", err)
+	if errors.Is(err, promptkit.ErrAborted) {
+		return "", fmt.Errorf("用户取消提交，预期内错误:%w", err)
+	} else {
+		return "", fmt.Errorf("提示词获取逻辑失败，错误详情：%w", err)
+	}
 }
 
 // LLM 提示词
-func GetPromptMain() string {
+func GetPromptMain() (string, error) {
 	skillDir, err := utils.GetConfigRootDir("./skill")
 	if err != nil {
 		return GenErrorAndUseDefaultPrompt("定位 skill 目录", err)
@@ -40,11 +47,10 @@ func GetPromptMain() string {
 	if skillFileLength == 1 {
 		return TryReadSkillFile(skillFileNames)
 	}
-	skillFileBody = SelectSkillFile(skillDir, skillFileBody, skillFileNames)
-	return skillFileBody
+	return SelectSkillFile(skillDir, skillFileBody, skillFileNames)
 }
 
-func SelectSkillFile(skillDir, skillFileBody string, skillFileNames []string) string {
+func SelectSkillFile(skillDir, skillFileBody string, skillFileNames []string) (string, error) {
 	sp := selection.New("请选择要执行的 System Prompt", skillFileNames)
 	sp.PageSize = 10
 	spResult, err := sp.RunPrompt()
@@ -53,10 +59,10 @@ func SelectSkillFile(skillDir, skillFileBody string, skillFileNames []string) st
 	if err != nil {
 		return GenErrorAndUseDefaultPrompt("读取"+fullPath+"文件", err)
 	}
-	return skillFileBody
+	return skillFileBody, nil
 }
 
-func TryReadSkillFile(skillFileName []string) string {
+func TryReadSkillFile(skillFileName []string) (string, error) {
 	skillDir, err := utils.GetConfigRootDir("./skill")
 	if err != nil {
 		return GenErrorAndUseDefaultPrompt("定位 skill 目录", err)
@@ -66,7 +72,7 @@ func TryReadSkillFile(skillFileName []string) string {
 	if err != nil {
 		return GenErrorAndUseDefaultPrompt("读取文件", err)
 	}
-	return skillFileBody
+	return skillFileBody, nil
 }
 
 // 获取所有的技能(skill)文件

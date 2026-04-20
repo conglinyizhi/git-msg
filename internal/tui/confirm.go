@@ -1,11 +1,13 @@
 package tui
 
 import (
+	"errors"
 	"fmt"
 	"gitmsg/internal/git"
 	"gitmsg/internal/types"
 	"gitmsg/internal/utils"
 
+	"github.com/erikgeiser/promptkit"
 	"github.com/erikgeiser/promptkit/confirmation"
 	"github.com/erikgeiser/promptkit/selection"
 )
@@ -32,6 +34,9 @@ func CallCmd(cfg types.Config, commitMessage string, isNeedAdd bool) error {
 		for {
 			spResult, err := selectPrompt.RunPrompt()
 			if err != nil {
+				if errors.Is(err, promptkit.ErrAborted) {
+					return fmt.Errorf("用户取消提交，预期内错误:%w", err)
+				}
 				return fmt.Errorf("交互命令出现异常: %w", err)
 			}
 			switch spResult {
