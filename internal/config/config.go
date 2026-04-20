@@ -15,7 +15,7 @@ import (
 )
 
 func errorMessageBuild(message string) error {
-	fmt.Println("提示：可以通过 .env 文件填写 API_KEY、BASE_URL、MODEL_NAME 三个参数")
+	fmt.Println("提示：可尝试使用 init 子命令后修改对应的 toml 文件")
 	return fmt.Errorf("%s", message+"没有填写")
 }
 
