@@ -27,7 +27,7 @@ func GetConfigValue(fs afero.Fs) (types.RemoteAPIConfig, error) {
 	if err != nil {
 		return config, fmt.Errorf("定位配置文件路径错误:%w", err)
 	}
-	tomlConfigBody, err := afero.ReadFile(fs, "llm.toml")
+	tomlConfigBody, err := afero.ReadFile(fs, configPath)
 	if err != nil {
 		fmt.Println("未能成功读取预期在 " + configPath + " 的配置文件，尝试读取环境变量……")
 		InitNewTomlFileIfNeed(err, config)
