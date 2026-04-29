@@ -4,6 +4,7 @@ import (
 	"gitmsg/internal/config"
 	"gitmsg/internal/core"
 
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +14,7 @@ var pingCmd = &cobra.Command{
 	Short: "向配置文件中的 API 地址发起一次请求",
 	Long:  `向配置文件 llm.toml 等配置的模型端口发送一次请求以判断是否配置正常`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg, err := config.GetConfigValue()
+		cfg, err := config.GetConfigValue(afero.NewOsFs())
 		if err != nil {
 			return err
 		}

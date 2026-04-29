@@ -12,6 +12,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/pelletier/go-toml/v2"
+	"github.com/spf13/afero"
 )
 
 func errorMessageBuild(message string) error {
@@ -20,13 +21,13 @@ func errorMessageBuild(message string) error {
 }
 
 // 获取配置文件 - toml
-func GetConfigValue() (types.RemoteAPIConfig, error) {
+func GetConfigValue(fs afero.Fs) (types.RemoteAPIConfig, error) {
 	config := types.RemoteAPIConfig{}
 	configPath, err := utils.GetConfigRootDir("llm.toml")
 	if err != nil {
 		return config, fmt.Errorf("定位配置文件路径错误:%w", err)
 	}
-	tomlConfigBody, err := os.ReadFile(configPath)
+	tomlConfigBody, err := afero.ReadFile(fs, "llm.toml")
 	if err != nil {
 		fmt.Println("未能成功读取预期在 " + configPath + " 的配置文件，尝试读取环境变量……")
 		InitNewTomlFileIfNeed(err, config)

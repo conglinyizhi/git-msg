@@ -16,13 +16,14 @@ import (
 	"sync"
 
 	"github.com/google/uuid"
+	"github.com/spf13/afero"
 )
 
 // 主函数
 func CommitMain(cmd *types.CommandlineConfig) {
 
 	getCLIConfig := func() (types.Config, error) {
-		config, err := config.GetConfigValue()
+		config, err := config.GetConfigValue(afero.NewOsFs())
 		if err != nil {
 			return types.Config{}, err
 		}
