@@ -29,9 +29,7 @@ func GetConfigValue(fs afero.Fs) (types.RemoteAPIConfig, error) {
 	}
 	tomlConfigBody, err := afero.ReadFile(fs, configPath)
 	if err != nil {
-		fmt.Println("未能成功读取预期在 " + configPath + " 的配置文件，尝试读取环境变量……")
-		InitNewTomlFileIfNeed(err, config)
-		return tryReadEnv()
+		return config, fmt.Errorf("未能成功读取预期在 "+configPath+" 的配置文件，请先完成配置，%w", err)
 	}
 	err = toml.Unmarshal(tomlConfigBody, &config)
 	if err != nil {
@@ -73,14 +71,6 @@ func InitNewTomlFile(config types.RemoteAPIConfig) error {
 	}
 	fmt.Println("配置文件完成初始化，请打开并填写文件 ", configFilePath)
 	return nil
-}
-
-// 判断错误是 syscall.ENOENT (文件不存在) 就尝试创建文件
-func InitNewTomlFileIfNeed(err error, cfg types.RemoteAPIConfig) error {
-	if !errors.Is(err, syscall.ENOENT) {
-		return nil
-	}
-	return InitNewTomlFile(cfg)
 }
 
 // 回退 - 使用系统变量
